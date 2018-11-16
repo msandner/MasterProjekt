@@ -16,7 +16,6 @@ public class BCO {
 
     //wird in Main Methode abhängig von Dataset gesetzt
     private static int cities;
-    private static int beeNumber = cities;
 
     //favorisierte nächste Stadt F
     private Node favouredCity;
@@ -28,11 +27,16 @@ public class BCO {
         Dataset dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
+        BeeColony colony = new BeeColony(cities);
+
         Fitness fitness = new Fitness(dataset);
 
+        //zum Testen random Pfd prüfen
         ArrayList<Evaluable> path = initializePath();
         fitness.evaluate(path);
     }
+
+
 
     /*initialisiert einen random Pfad und gibt diesen als ArrayList zurück
     * notwendig für erste Iteratrionen, wo Bienen noch keinen Dance beobachten können*/
