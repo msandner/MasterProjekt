@@ -9,9 +9,14 @@ import java.util.*;
 
 public class BCO {
 
+    //Parameter von Wong vorgegeben
     private int alpha = 1;
     private int beta = 10;
     private double gamma = 0.99;
+
+    //wird in Main Methode abhängig von Dataset gesetzt
+    private static int cities;
+    private static int beeNumber = cities;
 
     //favorisierte nächste Stadt F
     Node favouredCity;
@@ -21,16 +26,16 @@ public class BCO {
     public static void main(String[] args) throws IOException {
         String pathToData = "a280.tsp";
         Dataset dataset = Parser.read(pathToData);
-        int cities = dataset.getSize();
+        cities = dataset.getSize();
 
         Fitness fitness = new Fitness(dataset);
 
-        ArrayList<Evaluable> path = initializePath(cities);
+        ArrayList<Evaluable> path = initializePath();
         fitness.evaluate(path);
     }
 
     /*initialisiert einen Pfad und gibt diesen als ArrayList zurück*/
-    public static ArrayList<Evaluable> initializePath(int cities) throws IOException {
+    public static ArrayList<Evaluable> initializePath() throws IOException {
         ArrayList<Evaluable> initialpath = new ArrayList<>();
 
         Integer[] patharray = new Integer[cities];
@@ -45,6 +50,33 @@ public class BCO {
         initialpath.add(initial);
 
         return initialpath;
+    }
+
+    public void initializePopulation() {
+        //ToDo
+    }
+
+    public void observeDance() {
+        //ToDo
+    }
+
+    public void forageByTransRule() {
+        //ToDo
+    }
+
+    public void performWaggleDance() {
+        //ToDo
+    }
+
+    /*gibt true zurück, wenn Path kürzer ist als "previous best trials"*/
+    public boolean shouldBeeDance(Fitness fitness, ArrayList<Evaluable> path) {
+        //ToDo
+        return false;
+    }
+
+    public int danceDuration() {
+        //ToDo
+        return 0;
     }
 
     /*city i = aktuelle Stadt
@@ -73,7 +105,7 @@ public class BCO {
         return (arcfitness * distance) / (Math.pow(1, alpha) * distance);
     }
 
-    
+
 }
 
 class Path extends Evaluable {
