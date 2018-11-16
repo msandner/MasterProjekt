@@ -19,9 +19,9 @@ public class BCO {
     private static int beeNumber = cities;
 
     //favorisierte nächste Stadt F
-    Node favouredCity;
+    private Node favouredCity;
     //Set mit möglichen nächsten Städten A
-    ArrayList<Node> allowedCities = new ArrayList<>();
+    private ArrayList<Node> allowedCities = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
         String pathToData = "a280.tsp";
@@ -34,7 +34,8 @@ public class BCO {
         fitness.evaluate(path);
     }
 
-    /*initialisiert einen Pfad und gibt diesen als ArrayList zurück*/
+    /*initialisiert einen random Pfad und gibt diesen als ArrayList zurück
+    * notwendig für erste Iteratrionen, wo Bienen noch keinen Dance beobachten können*/
     public static ArrayList<Evaluable> initializePath() throws IOException {
         ArrayList<Evaluable> initialpath = new ArrayList<>();
 
@@ -101,7 +102,7 @@ public class BCO {
     //unter der Vermutung das die Summe von p_ij(t) = 1 ist
     public double stateTransitionProbability(Node cityi, Node cityj, int t) {
         double arcfitness = Math.pow(arcfitness(cityi, cityj, t), alpha);
-        double distance= Math.pow(1/cityi.distance(cityj), beta);
+        double distance= Math.pow(1.0/cityi.distance(cityj), beta);
         return (arcfitness * distance) / (Math.pow(1, alpha) * distance);
     }
 
@@ -109,7 +110,7 @@ public class BCO {
 }
 
 class Path extends Evaluable {
-    ArrayList<Integer> path;
+    private ArrayList<Integer> path;
     public Path(Integer[] path) {
         // wandelt int[] in eine ArrayList um
         this.path = new ArrayList<>();
