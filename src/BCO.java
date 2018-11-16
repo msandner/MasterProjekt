@@ -10,17 +10,12 @@ import java.util.*;
 public class BCO {
 
     //Parameter von Wong vorgegeben
-    private int alpha = 1;
-    private int beta = 10;
-    private double gamma = 0.99;
+    protected int alpha = 1;
+    protected int beta = 10;
+    protected double gamma = 0.99;
 
     //wird in Main Methode abhängig von Dataset gesetzt
     private static int cities;
-
-    //favorisierte nächste Stadt F
-    private Node favouredCity;
-    //Set mit möglichen nächsten Städten A
-    private ArrayList<Node> allowedCities = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
         String pathToData = "a280.tsp";
@@ -31,12 +26,10 @@ public class BCO {
 
         Fitness fitness = new Fitness(dataset);
 
-        //zum Testen random Pfd prüfen
+        //zum Testen random Pfad prüfen
         ArrayList<Evaluable> path = initializePath();
         fitness.evaluate(path);
     }
-
-
 
     /*initialisiert einen random Pfad und gibt diesen als ArrayList zurück
     * notwendig für erste Iteratrionen, wo Bienen noch keinen Dance beobachten können*/
@@ -56,60 +49,6 @@ public class BCO {
 
         return initialpath;
     }
-
-    public void initializePopulation() {
-        //ToDo
-    }
-
-    public void observeDance() {
-        //ToDo
-    }
-
-    public void forageByTransRule() {
-        //ToDo
-    }
-
-    public void performWaggleDance() {
-        //ToDo
-    }
-
-    /*gibt true zurück, wenn Path kürzer ist als "previous best trials"*/
-    public boolean shouldBeeDance(Fitness fitness, ArrayList<Evaluable> path) {
-        //ToDo
-        return false;
-    }
-
-    public int danceDuration() {
-        //ToDo
-        return 0;
-    }
-
-    /*city i = aktuelle Stadt
-    * city j = Stadt mit der verglichen werden soll
-    * noch nicht herausgefunden, wie t in die Gleichung mit einspielt*/
-    public double arcfitness(Node cityi, Node cityj, int t) {
-        int AunionF = 0;
-        //wenn accessable Cities A und favoured City F eine gemeinsame Instanz haben, dann AunionF auf 1 Setzen
-        if(allowedCities.contains(favouredCity)) {
-            AunionF = 1;
-        }
-
-        if(cityj.equals(favouredCity)) {
-            return gamma;
-        } else {
-            double a = 1 - gamma * AunionF;
-            double b = allowedCities.size() - AunionF;
-            return a/b;
-        }
-    }
-
-    //unter der Vermutung das die Summe von p_ij(t) = 1 ist
-    public double stateTransitionProbability(Node cityi, Node cityj, int t) {
-        double arcfitness = Math.pow(arcfitness(cityi, cityj, t), alpha);
-        double distance= Math.pow(1.0/cityi.distance(cityj), beta);
-        return (arcfitness * distance) / (Math.pow(1, alpha) * distance);
-    }
-
 
 }
 
