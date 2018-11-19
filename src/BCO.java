@@ -43,7 +43,7 @@ public class BCO {
     public static Integer[] initializePath(int cities) throws IOException {
         Integer[] patharray = new Integer[cities];
         for (int i = 0; i < cities; i++) {
-            patharray[i] = i;
+            patharray[i] = i+1;
         }
 
         Collections.shuffle(Arrays.asList(patharray));
