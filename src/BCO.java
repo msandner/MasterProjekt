@@ -13,57 +13,48 @@ public class BCO {
     protected int alpha = 1;
     protected int beta = 10;
     protected double gamma = 0.99;
+    protected static int cities;
 
-    //wird in Main Methode abhängig von Dataset gesetzt
-    private static int cities;
+    private static Dataset dataset;
 
     public static void main(String[] args) throws IOException {
+        //Dataset vorbereiten
         String pathToData = "a280.tsp";
-        Dataset dataset = Parser.read(pathToData);
+        dataset = Parser.read(pathToData);
         cities = dataset.getSize();
-
-        BeeColony colony = new BeeColony(cities);
 
         Fitness fitness = new Fitness(dataset);
 
-        //zum Testen random Pfad prüfen
-        ArrayList<Evaluable> path = initializePath();
-        fitness.evaluate(path);
+        Path path = new Path(initializePath(cities));
+        ArrayList<Evaluable> evaluables = new ArrayList<>();
+        evaluables.add(path);
+        fitness.evaluate(evaluables);
+
+        //Colony erstellen
+        BeeColony colony = new BeeColony(cities);
+    }
+
+    public Node getNodeByIDFromDataSet(int id){
+        return dataset.getNodeByID(id);
     }
 
     /*initialisiert einen random Pfad und gibt diesen als ArrayList zurück
-    * notwendig für erste Iteratrionen, wo Bienen noch keinen Dance beobachten können*/
-    public static ArrayList<Evaluable> initializePath() throws IOException {
-        ArrayList<Evaluable> initialpath = new ArrayList<>();
-
+     * notwendig für erste Iteratrionen, wo Bienen noch keinen Dance beobachten können*/
+    public static Integer[] initializePath(int cities) throws IOException {
         Integer[] patharray = new Integer[cities];
-
         for (int i = 0; i < cities; i++) {
-            patharray[i] = i + 1;
+            patharray[i] = i;
         }
 
         Collections.shuffle(Arrays.asList(patharray));
 
-        Path initial = new Path(patharray);
-        initialpath.add(initial);
-
-        return initialpath;
+        return patharray;
     }
 
-}
-
-class Path extends Evaluable {
-    private ArrayList<Integer> path;
-    public Path(Integer[] path) {
-        // wandelt int[] in eine ArrayList um
-        this.path = new ArrayList<>();
-        for(int x : path){
-            this.path.add(x);
-        }
+    public int getCityCount() {
+        return cities;
     }
 
-    @Override
-    public ArrayList<Integer> getPath() {
-        return path;
-    }
+
+
 }
