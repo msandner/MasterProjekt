@@ -133,8 +133,10 @@ public class Bee {
 
     //Unter der Voraussetung, dass man von jedem Node zu jedem Node wechseln kann, wäre diese Methode überflüssig
     public boolean shouldBeeDance() {
+        Path foundPath = new Path(newPath);
+        Path oldPath = new Path(path);
 
-        return false;
+        return (foundPath.getFitness() < oldPath.getFitness());
     }
 
 }
