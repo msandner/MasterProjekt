@@ -9,4 +9,8 @@ public class Dance {
     private Integer[] path = new Integer[bco.getCityCount()];
     private double danceDuration;
 
+    //Methode: Find best path under all bees
+
+
+
 }
