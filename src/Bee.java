@@ -12,7 +12,7 @@ public class Bee {
     int alpha = bco.alpha;
     int beta = bco.beta;
     double gamma = bco.gamma;
-    int cities = bco.getCityCount();
+    final int cities = bco.getCityCount();
 
     //favorisierter Pfad (durch Dance)
     private int favouredCityID = 0;
@@ -22,7 +22,7 @@ public class Bee {
     private Integer[] allowedCities;
 
     //Pfad mit bereits besuchten Städten
-
+    private Integer[] newPath= new Integer[cities];
 
     private Integer[] path;
 
@@ -52,8 +52,46 @@ public class Bee {
     }
 
     //Biene geht durch TSP und erstellt einen neuen Path mit berechneten Werten
-    public void forageByTransRule() {
-        //ToDo
+    public Integer[] forageByTransRule() {
+        double savedProb = 0.0;
+        double newProb = 0.0;
+        int bestPos = 0;
+
+        newPath[0] = path[0];
+
+        //Lösche die erste Stadt aus allowedCities raus, damit sie nicht zweimal besucht wird
+        for (int x = 0; x < allowedCities.length; x++) {
+            if (allowedCities[x] == path[0]) {
+                allowedCities[x] = 0;
+            }
+        }
+
+        for (int i = 0; i < (path.length-1); ++i) {
+            savedProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(path[i+1]),1);
+
+            for (int j = 0; j < allowedCities.length; ++j) {
+                if (allowedCities[j] != 0) {
+                    newProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), 1);
+
+                    if (savedProb < newProb) {
+                        for (int x = 0; x < allowedCities.length; x++) {
+                            if (allowedCities[x] == path[i+1]) {
+                                bestPos = x;
+                            }
+                        }
+                    } else {
+                        bestPos = j;
+                    }
+                }
+            }
+            //Beste Position in newPath speichern
+            newPath[i+1] = allowedCities[bestPos];
+
+            //Löscht die besuchte Stadt um doppeltes Besuchen zu verhindern
+            allowedCities[bestPos] = 0;
+
+        }
+        return newPath;
     }
 
     public void performWaggleDance() {
@@ -93,8 +131,9 @@ public class Bee {
         return (arcfitness * distance) / (Math.pow(1, alpha) * distance);
     }
 
+    //Unter der Voraussetung, dass man von jedem Node zu jedem Node wechseln kann, wäre diese Methode überflüssig
     public boolean shouldBeeDance() {
-        //ToDo
+
         return false;
     }
 

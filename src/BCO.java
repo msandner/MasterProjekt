@@ -25,13 +25,21 @@ public class BCO {
 
         Fitness fitness = new Fitness(dataset);
 
-        Path path = new Path(initializePath(cities));
+        /*Path path = new Path(initializePath(cities));
+
+        evaluables.add(path);*/
+
         ArrayList<Evaluable> evaluables = new ArrayList<>();
-        evaluables.add(path);
-        fitness.evaluate(evaluables);
 
         //Colony erstellen
         BeeColony colony = new BeeColony(cities);
+        for(int i = 0; i < cities; i++) {
+            Path a = new Path(colony.getBee(i).forageByTransRule());
+            evaluables.add(a);
+            fitness.evaluate(evaluables);
+            System.out.println("Fitness: " + a.getFitness());
+        }
+
     }
 
     public Node getNodeByIDFromDataSet(int id){
