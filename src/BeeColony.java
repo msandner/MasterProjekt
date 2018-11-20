@@ -20,10 +20,6 @@ public class BeeColony {
         return colony.get(index);
     }
 
-    public boolean shouldBeeDance() {
-        //ToDo
-        return false;
-    }
 
     public int danceDuration() {
         //ToDo

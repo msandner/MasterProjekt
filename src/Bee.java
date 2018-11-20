@@ -21,6 +21,9 @@ public class Bee {
     //Set mit möglichen nächsten Städten A
     private Integer[] allowedCities;
 
+    //Pfad mit bereits besuchten Städten
+
+
     private Integer[] path;
 
     public Bee(int ID) throws IOException {
@@ -43,6 +46,7 @@ public class Bee {
         }
     }
 
+    //erst in der Optimierung
     public void observeDance() {
         //ToDo
     }
@@ -87,6 +91,11 @@ public class Bee {
 
         double distance= Math.pow(1.0/cityi.distance(cityj), beta);
         return (arcfitness * distance) / (Math.pow(1, alpha) * distance);
+    }
+
+    public boolean shouldBeeDance() {
+        //ToDo
+        return false;
     }
 
 }
