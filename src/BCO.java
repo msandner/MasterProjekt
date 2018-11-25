@@ -37,7 +37,7 @@ public class BCO {
             Path a = new Path(colony.getBee(i).forageByTransRule());
             evaluables.add(a);
             fitness.evaluate(evaluables);
-            System.out.println("Fitness: " + a.getFitness());
+            //System.out.println("Fitness: " + a.getFitness());
         }
 
     }
