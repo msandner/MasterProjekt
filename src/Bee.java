@@ -55,28 +55,41 @@ public class Bee {
     public Integer[] forageByTransRule() {
         double savedProb = 0.0;
         double newProb = 0.0;
-        int bestPos = 0;
+        int bestPos;
 
         newPath[0] = path[0];
 
         //Lösche die erste Stadt aus allowedCities raus, damit sie nicht zweimal besucht wird
         for (int x = 0; x < allowedCities.length; x++) {
-            if (allowedCities[x] == path[0]) {
-                allowedCities[x] = 0;
+            int a = allowedCities[x];
+            int b = path[0];
+            /*
+            if(allowedCities[x] == -2) {
+                System.exit(-6);
             }
+            */
+            if (a == b) {
+                allowedCities[x] = -2;
+                break;
+            }
+            /*
+            if (x == 279)
+                System.exit(-4);
+            */
         }
 
         for (int i = 0; i < (path.length-1); ++i) {
             savedProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(path[i+1]),1);
-
+            bestPos = 0;
             for (int j = 0; j < allowedCities.length; ++j) {
-                if (allowedCities[j] != 0) {
+                if (allowedCities[j] != -2) {
                     newProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), 1);
 
                     if (savedProb < newProb) {
                         for (int x = 0; x < allowedCities.length; x++) {
                             if (allowedCities[x] == path[i+1]) {
                                 bestPos = x;
+                                break;
                             }
                         }
                     } else {
@@ -84,12 +97,14 @@ public class Bee {
                     }
                 }
             }
-            //Beste Position in newPath speichern
-            newPath[i+1] = allowedCities[bestPos];
+            //if(bestPos != -1) {
+            if(allowedCities[bestPos] != -2) {
+                //Beste Position in newPath speichern
+                newPath[i + 1] = allowedCities[bestPos];
 
-            //Löscht die besuchte Stadt um doppeltes Besuchen zu verhindern
-            allowedCities[bestPos] = 0;
-
+                //Löscht die besuchte Stadt um doppeltes Besuchen zu verhindern
+                allowedCities[bestPos] = -2;
+            }
         }
         return newPath;
     }
