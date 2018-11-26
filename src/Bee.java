@@ -35,6 +35,7 @@ public class Bee {
 
     public void setInitialPath() throws IOException {
         this.path = initializePath(cities);
+        colony.addArrayToBestPath(path);
     }
 
     public void mainProcedure() {
@@ -55,6 +56,7 @@ public class Bee {
         }
     }
 
+    /*
     public int getRemainingAllowedCities() {
         int counter = 0;
         for(int i = 0; i < allowedCities.length; i++) {
@@ -62,7 +64,7 @@ public class Bee {
                 counter++;
         }
         return counter;
-    }
+    }*/
 
     public static Integer[] initializePath(int cities) throws IOException {
         Integer[] patharray = new Integer[cities];
@@ -77,12 +79,16 @@ public class Bee {
     //aus ArrayList einen zufälligen Pfad wählen
     public Integer[] observedPath() {
         ArrayList<Integer[]> possiblePaths = colony.getBestPaths();
-        Integer[] observedPath = new Integer[cities];
+        Integer[] observedPath;
+        Path oldpath = new Path(path);
+        Path obsPath = null;
+        do {
+            //derzeit noch 0, da possiblePaths leer ist
+            int random = (int) Math.random() * (possiblePaths.size() + 1);
 
-        //derzeit noch 0, da possiblePaths leer ist
-        int random = (int) Math.random()*(possiblePaths.size()+1);
-
-        observedPath = possiblePaths.get(random);
+            observedPath = possiblePaths.get(random);
+            obsPath = new Path(observedPath);
+        } while(oldpath.getFitness() <= obsPath.getFitness());
 
         return observedPath;
     }
@@ -209,23 +215,11 @@ public class Bee {
             }
 
         }
+        iteration++;
         return newPath;
     }
 
-    /* city i = aktuelle Stadt
-     * city j = Stadt mit der verglichen werden soll
-     * noch nicht herausgefunden, wie t in die Gleichung mit einspielt*/
-    public double arcfitness(Node cityi, Node cityj, int t) {
-        /*
-        * AunionF ist eigentlich immer 1, da alle Städte von überall erreicht werden können?
-        int AunionF = 0;
-
-        //wenn accessable Cities A und favoured City F eine gemeinsame Instanz haben, dann AunionF auf 1 Setzen
-        if(allowedCities.contains(favouredCity)) {
-            AunionF = 1;
-        }
-        */
-
+    public double arcfitness(Node cityj) {
         int AunionF = 1;
 
         if(cityj.getId() == favouredCityID+1) {
@@ -237,19 +231,16 @@ public class Bee {
         }
     }
 
-    //unter der Vermutung das die Summe von p_ij(t) = 1 ist
+    //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
     public double stateTransitionProbability(Node cityi, Node cityj, int t) {
 
-        if (cityi == null || cityj == null) {
-            System.exit(-6);
-        }
         double endresult = 0.0;
         double result1 = 0.0;
         double result2 = 0.0;
         double distance = 0.0;
         double arcfitness = 0.0;
 
-        arcfitness = Math.pow(arcfitness(cityi, cityj, t), bco.getAlpha());
+        arcfitness = Math.pow(arcfitness(cityj), bco.getAlpha());
 
         distance= Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
 
@@ -273,9 +264,10 @@ public class Bee {
     }
 
     //Path in ArrayList schreiben
-    public Path performWaggleDance() {
-        Path betterPath = new Path(newPath);
-        return betterPath;
+    public Integer[] performWaggleDance() {
+        path = newPath;
+        colony.addArrayToBestPath(path);
+        return path;
     }
 
     public Integer[] getNewPath() {

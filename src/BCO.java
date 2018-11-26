@@ -33,14 +33,16 @@ public class BCO {
 
         //Colony erstellen
         BeeColony colony = new BeeColony(cities);
-        for(int i = 0; i < cities; i++) {
-            Path a = new Path(colony.getBee(i).searchNewPath());
-            evaluables.add(a);
+        for(int j = 0; j < 5; j++) {
+            for (int i = 0; i < cities; i++) {
+                colony.getBee(i).mainProcedure();
+                Path a = new Path(colony.getBee(i).getNewPath());
+                evaluables.add(a);
+                colony.clearBestPaths();
+            }
             fitness.evaluate(evaluables);
-            //System.out.println("Fitness: " + a.getFitness());
             evaluables.clear();
         }
-
     }
 
     public Node getNodeByIDFromDataSet(int id){

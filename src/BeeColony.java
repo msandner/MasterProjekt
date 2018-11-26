@@ -35,4 +35,12 @@ public class BeeColony {
     public ArrayList<Integer[]> getBestPaths() {
         return bestPaths;
     }
+
+    public void addArrayToBestPath(Integer[] path) {
+        bestPaths.add(path);
+    }
+
+    public void clearBestPaths() {
+        bestPaths.clear();
+    }
 }
