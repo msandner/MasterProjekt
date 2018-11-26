@@ -9,7 +9,7 @@ public class Bee {
     private int iteration;
 
     private BCO bco = new BCO();
-    public BeeColony colony = new BeeColony();
+    //public BeeColony colony = new BeeColony();
     final int cities = bco.getCityCount();
 
     //favorisierter Pfad (durch Dance)
@@ -35,7 +35,7 @@ public class Bee {
 
     public void setInitialPath() throws IOException {
         this.path = initializePath(cities);
-        colony.addArrayToBestPath(path);
+        BeeColony.addArrayToBestPath(ID, path);
     }
 
     public void mainProcedure() {
@@ -43,9 +43,7 @@ public class Bee {
             observeDance();
         }
         searchNewPath();
-        if(shouldBeeDance()) {
-            performWaggleDance();
-        }
+        performWaggleDance();
     }
 
     //alle Städte sind von überall erreichbar oder nicht?
@@ -78,17 +76,19 @@ public class Bee {
 
     //aus ArrayList einen zufälligen Pfad wählen
     public Integer[] observedPath() {
-        ArrayList<Integer[]> possiblePaths = colony.getBestPaths();
+        ArrayList<Integer[]> possiblePaths = BeeColony.getBestPaths();
         Integer[] observedPath;
         Path oldpath = new Path(path);
         Path obsPath = null;
+        int i = 0;
         do {
             //derzeit noch 0, da possiblePaths leer ist
             int random = (int) Math.random() * (possiblePaths.size() + 1);
 
             observedPath = possiblePaths.get(random);
             obsPath = new Path(observedPath);
-        } while(oldpath.getFitness() <= obsPath.getFitness());
+            i++;
+        } while(oldpath.getFitness() <= obsPath.getFitness() && i<=5);
 
         return observedPath;
     }
@@ -264,10 +264,11 @@ public class Bee {
     }
 
     //Path in ArrayList schreiben
-    public Integer[] performWaggleDance() {
-        path = newPath;
-        colony.addArrayToBestPath(path);
-        return path;
+    public void performWaggleDance() {
+        if (shouldBeeDance()) {
+            path = newPath;
+        }
+        BeeColony.addArrayToBestPath(ID, path);
     }
 
     public Integer[] getNewPath() {

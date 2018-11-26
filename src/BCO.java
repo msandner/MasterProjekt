@@ -34,14 +34,15 @@ public class BCO {
         //Colony erstellen
         BeeColony colony = new BeeColony(cities);
         for(int j = 0; j < 5; j++) {
-            for (int i = 0; i < cities; i++) {
+            for (int i = 0; i < 5; i++) {
                 colony.getBee(i).mainProcedure();
+                if(colony.getBee(i).getNewPath() == null) {
+                    System.exit(-5);
+                }
                 Path a = new Path(colony.getBee(i).getNewPath());
                 evaluables.add(a);
-                colony.clearBestPaths();
             }
             fitness.evaluate(evaluables);
-            evaluables.clear();
         }
     }
 
