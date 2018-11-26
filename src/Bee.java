@@ -9,9 +9,6 @@ public class Bee {
     private int iteration;
 
     private BCO bco = new BCO();
-    int alpha = bco.alpha;
-    int beta = bco.beta;
-    double gamma = bco.gamma;
     final int cities = bco.getCityCount();
 
     //favorisierter Pfad (durch Dance)
@@ -23,6 +20,7 @@ public class Bee {
 
     //Pfad mit bereits besuchten Städten
     private Integer[] newPath= new Integer[cities];
+    int leftAllow = 280;
 
     private Integer[] path;
 
@@ -51,11 +49,13 @@ public class Bee {
         //ToDo
     }
 
+    /*
     //Biene geht durch TSP und erstellt einen neuen Path mit berechneten Werten
     public Integer[] forageByTransRule() {
         double savedProb = 0.0;
         double newProb = 0.0;
         int bestPos;
+        int hello = 0;
 
         newPath[0] = path[0];
 
@@ -63,31 +63,29 @@ public class Bee {
         for (int x = 0; x < allowedCities.length; x++) {
             int a = allowedCities[x];
             int b = path[0];
-            /*
-            if(allowedCities[x] == -2) {
-                System.exit(-6);
-            }
-            */
+
+
             if (a == b) {
                 allowedCities[x] = -2;
+                leftAllow--;
                 break;
             }
-            /*
-            if (x == 279)
-                System.exit(-4);
-            */
         }
 
         for (int i = 0; i < (path.length-1); ++i) {
-            savedProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(path[i+1]),1);
-            bestPos = 0;
+            savedProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(path[i+1]), i);
+            bestPos = -1;
+
             for (int j = 0; j < allowedCities.length; ++j) {
                 if (allowedCities[j] != -2) {
-                    newProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), 1);
+                    newProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), i);
 
                     if (savedProb < newProb) {
+
                         for (int x = 0; x < allowedCities.length; x++) {
-                            if (allowedCities[x] == path[i+1]) {
+                            int a = allowedCities[x];
+                            int b = path[i+1];
+                            if (a == b && a != -2) {
                                 bestPos = x;
                                 break;
                             }
@@ -95,16 +93,79 @@ public class Bee {
                     } else {
                         bestPos = j;
                     }
+                } else if (j == 279){
+                    hello = j;
                 }
             }
-            //if(bestPos != -1) {
-            if(allowedCities[bestPos] != -2) {
+
+            if(bestPos != -1) {
+            //int q = allowedCities[bestPos];
+            //if(q != -2) {
                 //Beste Position in newPath speichern
                 newPath[i + 1] = allowedCities[bestPos];
-
                 //Löscht die besuchte Stadt um doppeltes Besuchen zu verhindern
                 allowedCities[bestPos] = -2;
+                leftAllow--;
+            } else {
+                System.exit(-3);
             }
+
+        }
+        return newPath;
+    }
+    */
+    public Integer[] searchNewPath() {
+        boolean isBetter = false;
+        double bestProb = 0.0;
+        double foundProb = 0.0;
+        int bestNode = 0;
+
+        //Der Startknoten des neuen Pfades ist auch der Startknoten den gespeicherten Pfades der Biene
+        newPath[0] = path[0];
+
+        //Der Startknoten wird in allowedCities als besucht markiert
+        for (int x = 0; x < allowedCities.length; x++) {
+            int a = allowedCities[x];
+            int b = path[0];
+
+            if (a == b) {
+                allowedCities[x] = -2;
+                leftAllow--;
+                break;
+            }
+        }
+
+        //Fülle den neuen Pfad newPath mit Knoten
+        for(int i=0; i < (allowedCities.length-1); ++i) {
+            bestNode = -1;
+            bestProb = -1.0;
+            for(int j=0; j < allowedCities.length; ++j) {
+                if(allowedCities[j] != -2) {
+                    if (newPath[i] == null) {
+                        System.exit(-3);
+                    }
+                    foundProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), i);
+
+                    if (bestNode == -1) {
+                        bestNode = j;
+                    }
+                    if (bestProb == -1.0) {
+                        bestProb = foundProb;
+                    }
+                    if (foundProb < bestProb) {
+                        bestNode = j;
+                    }
+                } /*else if(j == 279) {
+                    j=0;
+                }*/
+            }
+
+            if(bestNode != -1) {
+                newPath[i+1] = allowedCities[bestNode];
+                allowedCities[bestNode] = -2;
+                leftAllow--;
+            }
+
         }
         return newPath;
     }
@@ -130,20 +191,39 @@ public class Bee {
         int AunionF = 1;
 
         if(cityj.getId() == favouredCityID+1) {
-            return gamma;
+            return bco.getGamma();
         } else {
-            double a = 1 - gamma * AunionF;
-            double b = allowedCities.length - AunionF;
+            double a = 1.0 - bco.getGamma() * AunionF;
+            double b = leftAllow - AunionF;
             return a/b;
         }
     }
 
     //unter der Vermutung das die Summe von p_ij(t) = 1 ist
     public double stateTransitionProbability(Node cityi, Node cityj, int t) {
-        double arcfitness = Math.pow(arcfitness(cityi, cityj, t), alpha);
 
-        double distance= Math.pow(1.0/cityi.distance(cityj), beta);
-        return (arcfitness * distance) / (Math.pow(1, alpha) * distance);
+        if (cityi == null || cityj == null) {
+            System.exit(-6);
+        }
+        double endresult = 0.0;
+        double result1 = 0.0;
+        double result2 = 0.0;
+        double distance = 0.0;
+        double arcfitness = 0.0;
+
+        arcfitness = Math.pow(arcfitness(cityi, cityj, t), bco.getAlpha());
+
+        distance= Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
+
+        result1 = arcfitness * distance;
+
+
+        for(int i = 0; i < leftAllow; i++) {
+            result2 += arcfitness * distance;
+        }
+        endresult = result1/result2;
+
+        return endresult;
     }
 
     //Unter der Voraussetung, dass man von jedem Node zu jedem Node wechseln kann, wäre diese Methode überflüssig

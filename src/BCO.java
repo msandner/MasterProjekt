@@ -34,10 +34,11 @@ public class BCO {
         //Colony erstellen
         BeeColony colony = new BeeColony(cities);
         for(int i = 0; i < cities; i++) {
-            Path a = new Path(colony.getBee(i).forageByTransRule());
+            Path a = new Path(colony.getBee(i).searchNewPath());
             evaluables.add(a);
             fitness.evaluate(evaluables);
             //System.out.println("Fitness: " + a.getFitness());
+            evaluables.clear();
         }
 
     }
@@ -58,11 +59,32 @@ public class BCO {
 
         return patharray;
     }
+    /*
+    public static Integer[] observedPath (Path savedPath) {
+        //Path observedPath = ;
+
+        if (observedPath.getFitness() < savedPath.getFitness())
+            return observedPath;
+        else
+            return savedPath;
+
+    }
+    */
 
     public int getCityCount() {
         return cities;
     }
 
+    public int getAlpha() {
+      return alpha;
+    }
 
+    public int getBeta() {
+        return beta;
+    }
+
+    public double getGamma() {
+        return gamma;
+    }
 
 }
