@@ -1,7 +1,7 @@
 import com.hsh.parser.Node;
 
 import java.io.IOException;
-
+import java.util.*;
 
 public class Bee {
 
@@ -9,6 +9,7 @@ public class Bee {
     private int iteration;
 
     private BCO bco = new BCO();
+    public BeeColony colony = new BeeColony();
     final int cities = bco.getCityCount();
 
     //favorisierter Pfad (durch Dance)
@@ -33,7 +34,17 @@ public class Bee {
     }
 
     public void setInitialPath() throws IOException {
-        this.path = bco.initializePath(cities);
+        this.path = initializePath(cities);
+    }
+
+    public void mainProcedure() {
+        if(iteration > 0) {
+            observeDance();
+        }
+        searchNewPath();
+        if(shouldBeeDance()) {
+            performWaggleDance();
+        }
     }
 
     //alle Städte sind von überall erreichbar oder nicht?
@@ -44,9 +55,40 @@ public class Bee {
         }
     }
 
-    //erst in der Optimierung
+    public int getRemainingAllowedCities() {
+        int counter = 0;
+        for(int i = 0; i < allowedCities.length; i++) {
+            if(!allowedCities[i].equals(-2))
+                counter++;
+        }
+        return counter;
+    }
+
+    public static Integer[] initializePath(int cities) throws IOException {
+        Integer[] patharray = new Integer[cities];
+        for (int i = 0; i < cities; i++) {
+            patharray[i] = i + 1;
+        }
+        Collections.shuffle(Arrays.asList(patharray));
+
+        return patharray;
+    }
+
+    //aus ArrayList einen zufälligen Pfad wählen
+    public Integer[] observedPath() {
+        ArrayList<Integer[]> possiblePaths = colony.getBestPaths();
+        Integer[] observedPath = new Integer[cities];
+
+        //derzeit noch 0, da possiblePaths leer ist
+        int random = (int) Math.random()*(possiblePaths.size()+1);
+
+        observedPath = possiblePaths.get(random);
+
+        return observedPath;
+    }
+
     public void observeDance() {
-        //ToDo
+        path = observedPath();
     }
 
     /*
@@ -170,10 +212,6 @@ public class Bee {
         return newPath;
     }
 
-    public void performWaggleDance() {
-        //ToDo
-    }
-
     /* city i = aktuelle Stadt
      * city j = Stadt mit der verglichen werden soll
      * noch nicht herausgefunden, wie t in die Gleichung mit einspielt*/
@@ -234,4 +272,17 @@ public class Bee {
         return (foundPath.getFitness() < oldPath.getFitness());
     }
 
+    //Path in ArrayList schreiben
+    public Path performWaggleDance() {
+        Path betterPath = new Path(newPath);
+        return betterPath;
+    }
+
+    public Integer[] getNewPath() {
+        return newPath;
+    }
+
+    public Integer[] getPath() {
+        return path;
+    }
 }
