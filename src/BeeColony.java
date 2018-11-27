@@ -1,26 +1,24 @@
 import com.hsh.Evaluable;
 import com.hsh.Fitness;
-
+import com.hsh.parser.Dataset;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BeeColony {
 
     private int beeCount;
-    private ArrayList<Bee> colony = new ArrayList<>();
-    private static ArrayList<Integer[]> bestPaths= new ArrayList<>(280);
+    private ArrayList<Bee> colony;
+    private static ArrayList<Integer[]> bestPaths;
 
 
-    public BeeColony(int beeCount) throws IOException {
+    public BeeColony(int beeCount, Dataset dataset) throws IOException {
+        colony = new ArrayList<>();
+        bestPaths = new ArrayList<>();
         this.beeCount = beeCount;
-        initializeBestPath();
         for (int i = 0; i < beeCount; i++) {
-            colony.add(new Bee(i));
+            colony.add(new Bee(i, this, dataset));
         }
-    }
-
-    public BeeColony() {
-        //initializeBestPath();
     }
 
     public Bee getBee(int index) {
@@ -33,36 +31,15 @@ public class BeeColony {
         return 0;
     }
 
-    public static ArrayList<Integer[]> getBestPaths() {
+    public ArrayList<Integer[]> getBestPaths() {
         return bestPaths;
     }
 
-    /*
-    public void createNewPathList () {
-
-        if(bestPaths != null) {
-            bestPaths.clear();
-        }
-        bestPaths = new ArrayList<>(280);
+    public static void addArrayToBestPath(int index, Integer[] path) {
+        bestPaths.add(index, path);
     }
-    */
 
-    public void initializeBestPath() {
-        Integer[] defaultPath = new Integer[1];
-
-        for (int i=0; i < 280; ++i) {
-            bestPaths.add(defaultPath);
-        }
-        int hello = 0;
-
+    public void setBestPathsAtIndex(int index, Integer[] path) {
+        bestPaths.set(index, path);
     }
-    public static void addArrayToBestPath(int index,Integer[] path) {
-            bestPaths.add(index, path);
-
-    }
-    /*
-    public void clearBestPaths() {
-        bestPaths.clear();
-    }
-    */
 }

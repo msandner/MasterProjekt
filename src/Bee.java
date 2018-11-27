@@ -1,14 +1,19 @@
+import com.hsh.Evaluable;
+import com.hsh.Fitness;
+import com.hsh.parser.Dataset;
 import com.hsh.parser.Node;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class Bee {
 
-    private int ID;
+    private static int ID;
     private int iteration;
 
     private BCO bco = new BCO();
+
     //public BeeColony colony = new BeeColony();
     final int cities = bco.getCityCount();
 
@@ -19,23 +24,37 @@ public class Bee {
     //Set mit möglichen nächsten Städten A
     private Integer[] allowedCities;
 
-    //Pfad mit bereits besuchten Städten
+    //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
     private Integer[] newPath= new Integer[cities];
-    int leftAllow = 280;
 
-    private Integer[] path;
+    private int leftAllow = 280;
 
-    public Bee(int ID) throws IOException {
+    private static Integer[] path;
+
+    static BeeColony colony;
+
+    Fitness fitness;
+
+
+    public Bee(int ID, BeeColony colony, Dataset dataset) throws IOException {
         this.ID = ID;
+        this.colony = colony;
+        this.fitness = new Fitness(dataset, false);
         this.iteration = 0;
         this.path = new Integer[cities];
         setInitialPath();
         setAllowedCities();
+        fillFavouredPathForInitial();
+    }
+
+    public void fillFavouredPathForInitial() {
+        for(int i = 0; i < favouredPath.length; i++) {
+            favouredPath[i] = -1;
+        }
     }
 
     public void setInitialPath() throws IOException {
         this.path = initializePath(cities);
-        BeeColony.addArrayToBestPath(ID, path);
     }
 
     public void mainProcedure() {
@@ -64,31 +83,39 @@ public class Bee {
         return counter;
     }*/
 
-    public static Integer[] initializePath(int cities) throws IOException {
+    public static Integer[] initializePath(int cities) {
         Integer[] patharray = new Integer[cities];
         for (int i = 0; i < cities; i++) {
             patharray[i] = i + 1;
         }
         Collections.shuffle(Arrays.asList(patharray));
 
+        colony.addArrayToBestPath(ID, patharray);
+
         return patharray;
     }
 
     //aus ArrayList einen zufälligen Pfad wählen
     public Integer[] observedPath() {
-        ArrayList<Integer[]> possiblePaths = BeeColony.getBestPaths();
+        ArrayList<Integer[]> possiblePaths = colony.getBestPaths();
+
         Integer[] observedPath;
         Path oldpath = new Path(path);
-        Path obsPath = null;
-        int i = 0;
-        do {
-            //derzeit noch 0, da possiblePaths leer ist
-            int random = (int) Math.random() * (possiblePaths.size() + 1);
+        Path obsPath;
 
+        ArrayList<Evaluable> ev = new ArrayList<>();
+        int counter = 0;
+
+        do {
+            ev.clear();
+            int random = (int) (Math.random() * (possiblePaths.size()));
             observedPath = possiblePaths.get(random);
             obsPath = new Path(observedPath);
-            i++;
-        } while(oldpath.getFitness() <= obsPath.getFitness() && i<=5);
+            ev.add(oldpath);
+            ev.add(obsPath);
+            fitness.evaluate(ev);
+            counter++;
+        } while(oldpath.getFitness() <= obsPath.getFitness() && counter < 280);
 
         return observedPath;
     }
@@ -97,7 +124,120 @@ public class Bee {
         path = observedPath();
     }
 
-    /*
+    public Integer[] searchNewPath() {
+        boolean isBetter = false;
+        double bestProb = 0.0;
+        double foundProb = 0.0;
+        int bestNode = 0;
+
+        //Der Startknoten des neuen Pfades ist auch der Startknoten den gespeicherten Pfades der Biene
+        newPath[0] = path[0];
+
+        //Der Startknoten wird in allowedCities als besucht markiert
+        for (int x = 0; x < allowedCities.length; x++) {
+            int a = allowedCities[x];
+            int b = path[0];
+
+            if (a == b) {
+                allowedCities[x] = -2;
+                leftAllow--;
+                break;
+            }
+        }
+
+        //Fülle den neuen Pfad newPath mit Knoten
+        for(int i=0; i < (allowedCities.length-1); ++i) {
+            bestNode = -1;
+            bestProb = -1.0;
+            for(int j=0; j < allowedCities.length; ++j) {
+                if(allowedCities[j] != -2) {
+                    if (newPath[i] == null) {
+                        System.exit(-3);
+                    }
+                    foundProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), j);
+
+                    if (bestNode == -1) {
+                        bestNode = j;
+                    }
+                    if (bestProb == -1.0) {
+                        bestProb = foundProb;
+                    }
+                    if (foundProb < bestProb) {
+                        bestNode = j;
+                    }
+                } /*else if(j == 279) {
+                    j=0;
+                }*/
+            }
+
+            if(bestNode != -1) {
+                newPath[i+1] = allowedCities[bestNode];
+                allowedCities[bestNode] = -2;
+                leftAllow--;
+            }
+
+        }
+        iteration++;
+        return newPath;
+    }
+
+    public double arcfitness(Node cityj, int i) {
+        int AunionF = 1;
+        if(cityj.getId() == favouredPath[i]) {
+            return bco.getGamma();
+        } else {
+            double a = 1.0 - bco.getGamma() * AunionF;
+            double b = leftAllow - AunionF;
+            return a/b;
+        }
+    }
+
+    //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
+    public double stateTransitionProbability(Node cityi, Node cityj, int i) {
+        double arcfitness = Math.pow(arcfitness(cityj, i), bco.getAlpha());
+        double distance= Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
+
+        double result1 = arcfitness * distance;
+
+        double result2 = 0.0;
+        for(int j = 0; j < leftAllow; j++) {
+            result2 += arcfitness * distance;
+        }
+        double endresult = result1/result2;
+
+        return endresult;
+    }
+
+    //Unter der Voraussetung, dass man von jedem Node zu jedem Node wechseln kann, wäre diese Methode überflüssig
+    public boolean shouldBeeDance() {
+        Path foundPath = new Path(newPath);
+        Path oldPath = new Path(path);
+
+        ArrayList<Evaluable> ev = new ArrayList<>();
+        ev.add(foundPath);
+        ev.add(oldPath);
+        fitness.evaluate(ev);
+        return (foundPath.getFitness() <= oldPath.getFitness());
+    }
+
+    //Path in ArrayList schreiben
+    public void performWaggleDance() {
+        if (shouldBeeDance()) {
+            path = newPath;
+            colony.setBestPathsAtIndex(ID, path);
+        }
+
+    }
+
+    public Integer[] getNewPath() {
+        return newPath;
+    }
+
+    public Integer[] getPath() {
+        return path;
+    }
+
+        /*
     //Biene geht durch TSP und erstellt einen neuen Path mit berechneten Werten
     public Integer[] forageByTransRule() {
         double savedProb = 0.0;
@@ -162,120 +302,4 @@ public class Bee {
         return newPath;
     }
     */
-    public Integer[] searchNewPath() {
-        boolean isBetter = false;
-        double bestProb = 0.0;
-        double foundProb = 0.0;
-        int bestNode = 0;
-
-        //Der Startknoten des neuen Pfades ist auch der Startknoten den gespeicherten Pfades der Biene
-        newPath[0] = path[0];
-
-        //Der Startknoten wird in allowedCities als besucht markiert
-        for (int x = 0; x < allowedCities.length; x++) {
-            int a = allowedCities[x];
-            int b = path[0];
-
-            if (a == b) {
-                allowedCities[x] = -2;
-                leftAllow--;
-                break;
-            }
-        }
-
-        //Fülle den neuen Pfad newPath mit Knoten
-        for(int i=0; i < (allowedCities.length-1); ++i) {
-            bestNode = -1;
-            bestProb = -1.0;
-            for(int j=0; j < allowedCities.length; ++j) {
-                if(allowedCities[j] != -2) {
-                    if (newPath[i] == null) {
-                        System.exit(-3);
-                    }
-                    foundProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), i);
-
-                    if (bestNode == -1) {
-                        bestNode = j;
-                    }
-                    if (bestProb == -1.0) {
-                        bestProb = foundProb;
-                    }
-                    if (foundProb < bestProb) {
-                        bestNode = j;
-                    }
-                } /*else if(j == 279) {
-                    j=0;
-                }*/
-            }
-
-            if(bestNode != -1) {
-                newPath[i+1] = allowedCities[bestNode];
-                allowedCities[bestNode] = -2;
-                leftAllow--;
-            }
-
-        }
-        iteration++;
-        return newPath;
-    }
-
-    public double arcfitness(Node cityj) {
-        int AunionF = 1;
-
-        if(cityj.getId() == favouredCityID+1) {
-            return bco.getGamma();
-        } else {
-            double a = 1.0 - bco.getGamma() * AunionF;
-            double b = leftAllow - AunionF;
-            return a/b;
-        }
-    }
-
-    //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
-    public double stateTransitionProbability(Node cityi, Node cityj, int t) {
-
-        double endresult = 0.0;
-        double result1 = 0.0;
-        double result2 = 0.0;
-        double distance = 0.0;
-        double arcfitness = 0.0;
-
-        arcfitness = Math.pow(arcfitness(cityj), bco.getAlpha());
-
-        distance= Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
-
-        result1 = arcfitness * distance;
-
-
-        for(int i = 0; i < leftAllow; i++) {
-            result2 += arcfitness * distance;
-        }
-        endresult = result1/result2;
-
-        return endresult;
-    }
-
-    //Unter der Voraussetung, dass man von jedem Node zu jedem Node wechseln kann, wäre diese Methode überflüssig
-    public boolean shouldBeeDance() {
-        Path foundPath = new Path(newPath);
-        Path oldPath = new Path(path);
-
-        return (foundPath.getFitness() < oldPath.getFitness());
-    }
-
-    //Path in ArrayList schreiben
-    public void performWaggleDance() {
-        if (shouldBeeDance()) {
-            path = newPath;
-        }
-        BeeColony.addArrayToBestPath(ID, path);
-    }
-
-    public Integer[] getNewPath() {
-        return newPath;
-    }
-
-    public Integer[] getPath() {
-        return path;
-    }
 }

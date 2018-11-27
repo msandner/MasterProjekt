@@ -25,54 +25,31 @@ public class BCO {
 
         Fitness fitness = new Fitness(dataset);
 
-        /*Path path = new Path(initializePath(cities));
-
-        evaluables.add(path);*/
-
-        ArrayList<Evaluable> evaluables = new ArrayList<>();
-
         //Colony erstellen
-        BeeColony colony = new BeeColony(cities);
+        ArrayList<Evaluable> evaluables = new ArrayList<>();
+        BeeColony colony = new BeeColony(cities, dataset);
+        for (int i = 0; i < 280; i++) {
+            Path a = new Path(colony.getBee(i).getPath());
+            evaluables.add(a);
+        }
+        fitness.evaluate(evaluables);
+        evaluables.clear();
+
         for(int j = 0; j < 5; j++) {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 280; i++) {
                 colony.getBee(i).mainProcedure();
-                if(colony.getBee(i).getNewPath() == null) {
-                    System.exit(-5);
-                }
-                Path a = new Path(colony.getBee(i).getNewPath());
-                evaluables.add(a);
+                Path b = new Path(colony.getBee(i).getPath());
+                evaluables.add(b);
             }
             fitness.evaluate(evaluables);
         }
+
     }
+
 
     public Node getNodeByIDFromDataSet(int id){
         return dataset.getNodeByID(id);
     }
-
-    /*initialisiert einen random Pfad und gibt diesen als ArrayList zurück
-     * notwendig für erste Iteratrionen, wo Bienen noch keinen Dance beobachten können*/
-    public static Integer[] initializePath(int cities) throws IOException {
-        Integer[] patharray = new Integer[cities];
-        for (int i = 0; i < cities; i++) {
-            patharray[i] = i+1;
-        }
-
-        Collections.shuffle(Arrays.asList(patharray));
-
-        return patharray;
-    }
-    /*
-    public static Integer[] observedPath (Path savedPath) {
-        //Path observedPath = ;
-
-        if (observedPath.getFitness() < savedPath.getFitness())
-            return observedPath;
-        else
-            return savedPath;
-
-    }
-    */
 
     public int getCityCount() {
         return cities;
@@ -89,5 +66,8 @@ public class BCO {
     public double getGamma() {
         return gamma;
     }
+
+
+
 
 }
