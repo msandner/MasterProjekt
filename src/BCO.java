@@ -28,7 +28,7 @@ public class BCO {
         //Colony erstellen
         ArrayList<Evaluable> evaluables = new ArrayList<>();
         BeeColony colony = new BeeColony(cities, dataset);
-        for (int i = 0; i < 280; i++) {
+        for (int i = 0; i < cities; i++) {
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
         }
@@ -36,14 +36,24 @@ public class BCO {
         evaluables.clear();
 
         for(int j = 0; j < 5; j++) {
-            for (int i = 0; i < 280; i++) {
+            for (int i = 0; i < cities; i++) {
                 colony.getBee(i).mainProcedure();
                 Path b = new Path(colony.getBee(i).getPath());
                 evaluables.add(b);
             }
             fitness.evaluate(evaluables);
         }
-
+        /*
+        Path b = new Path(colony.getBee(1).getPath());
+        evaluables.add(b);
+        fitness.evaluate(evaluables);
+        for(int i = 0; i < 4; i++) {
+            colony.getBee(1).mainProcedure();
+            Path a = new Path(colony.getBee(i).getPath());
+            evaluables.add(a);
+            fitness.evaluate(evaluables);
+            evaluables.clear();
+        }*/
     }
 
 

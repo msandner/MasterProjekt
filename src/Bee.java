@@ -9,7 +9,7 @@ import java.util.*;
 
 public class Bee {
 
-    private static int ID;
+    private static int ID = 0;
     private int iteration;
 
     private BCO bco = new BCO();
@@ -27,7 +27,7 @@ public class Bee {
     //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
     private Integer[] newPath= new Integer[cities];
 
-    private int leftAllow = 280;
+    private int leftAllow;
 
     private static Integer[] path;
 
@@ -40,6 +40,7 @@ public class Bee {
         this.ID = ID;
         this.colony = colony;
         this.fitness = new Fitness(dataset, false);
+        leftAllow = dataset.getSize();
         this.iteration = 0;
         this.path = new Integer[cities];
         setInitialPath();
@@ -115,7 +116,7 @@ public class Bee {
             ev.add(obsPath);
             fitness.evaluate(ev);
             counter++;
-        } while(oldpath.getFitness() <= obsPath.getFitness() && counter < 280);
+        } while(oldpath.getFitness() <= obsPath.getFitness() && counter <= possiblePaths.size());
 
         return observedPath;
     }
@@ -125,6 +126,8 @@ public class Bee {
     }
 
     public Integer[] searchNewPath() {
+        setAllowedCities();
+
         boolean isBetter = false;
         double bestProb = 0.0;
         double foundProb = 0.0;
@@ -132,16 +135,19 @@ public class Bee {
 
         //Der Startknoten des neuen Pfades ist auch der Startknoten den gespeicherten Pfades der Biene
         newPath[0] = path[0];
+        int start = newPath[0];
 
         //Der Startknoten wird in allowedCities als besucht markiert
         for (int x = 0; x < allowedCities.length; x++) {
-            int a = allowedCities[x];
-            int b = path[0];
+            if(allowedCities[x] != -2) {
+                int a = allowedCities[x];
+                int b = path[0];
 
-            if (a == b) {
-                allowedCities[x] = -2;
-                leftAllow--;
-                break;
+                if (a == b) {
+                    allowedCities[x] = -2;
+                    leftAllow--;
+                    break;
+                }
             }
         }
 
@@ -178,10 +184,23 @@ public class Bee {
 
         }
         iteration++;
+
+        /*System.out.println("Bee " + ID + " Path: ");
+        for(int i = 0; i < path.length; i++) {
+            System.out.print(path[i] + " ");
+        }
+        System.out.println();
+        System.out.println("NewPath: ");
+        for(int i = 0; i < newPath.length; i++) {
+            System.out.print(newPath[i] + " ");
+        }
+        System.out.println();*/
+
         return newPath;
     }
 
     public double arcfitness(Node cityj, int i) {
+
         int AunionF = 1;
         if(cityj.getId() == favouredPath[i]) {
             return bco.getGamma();
