@@ -10,8 +10,8 @@ import java.util.*;
 public class BCO {
 
     //Parameter von Wong vorgegeben
-    protected int alpha = 1;
-    protected int beta = 10;
+    protected double alpha = 1.0;
+    protected double beta = 10.0;
     protected double gamma = 0.99;
     protected static int cities;
 
@@ -28,6 +28,8 @@ public class BCO {
         //Colony erstellen
         ArrayList<Evaluable> evaluables = new ArrayList<>();
         BeeColony colony = new BeeColony(cities, dataset);
+
+        //ganze Kolonie
         for (int i = 0; i < cities; i++) {
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
@@ -44,16 +46,18 @@ public class BCO {
             fitness.evaluate(evaluables);
         }
         /*
+        //eine Biene
         Path b = new Path(colony.getBee(1).getPath());
         evaluables.add(b);
         fitness.evaluate(evaluables);
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 15; i++) {
             colony.getBee(1).mainProcedure();
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
             fitness.evaluate(evaluables);
             evaluables.clear();
-        }*/
+        }
+        */
     }
 
 
@@ -65,11 +69,11 @@ public class BCO {
         return cities;
     }
 
-    public int getAlpha() {
+    public double getAlpha() {
       return alpha;
     }
 
-    public int getBeta() {
+    public double getBeta() {
         return beta;
     }
 
