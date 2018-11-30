@@ -72,6 +72,7 @@ public class Bee {
         for (int i = 0; i < cities; i++) {
             allowedCities[i] = i + 1;
         }
+        leftAllow = cities;
     }
 
     /*
@@ -168,7 +169,7 @@ public class Bee {
                     if (bestProb == -1.0) {
                         bestProb = foundProb;
                     }
-                    if (foundProb < bestProb) {
+                    if (foundProb <= bestProb) {
                         bestNode = j;
                     }
                 } /*else if(j == 279) {
