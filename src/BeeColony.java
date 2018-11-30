@@ -35,8 +35,8 @@ public class BeeColony {
         return bestPaths;
     }
 
-    public static void addArrayToBestPath(int index, Integer[] path) {
-        bestPaths.add(index, path);
+    public static void addArrayToBestPath(Integer[] path) {
+        bestPaths.add(path);
     }
 
     public void setBestPathsAtIndex(int index, Integer[] path) {
