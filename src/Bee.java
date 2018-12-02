@@ -2,102 +2,87 @@ import com.hsh.Evaluable;
 import com.hsh.Fitness;
 import com.hsh.parser.Dataset;
 import com.hsh.parser.Node;
-
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class Bee {
 
-    private static int ID = 0;
+    private int ID;
+
     private int iteration;
 
     private BCO bco = new BCO();
 
-    //public BeeColony colony = new BeeColony();
-    final int cities = bco.getCityCount();
+    private final int cities;
 
-    //favorisierter Pfad (durch Dance)
-    private int favouredCityID = 0;
-    private Integer[] favouredPath = new Integer[cities];
+    //favorisierter Pfad
+    private Integer[] favouredPath;
 
     //Set mit möglichen nächsten Städten A
     private Integer[] allowedCities;
 
     //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
-    private Integer[] newPath= new Integer[cities];
+    private Integer[] newPath;
 
     private int leftAllow;
 
     private static Integer[] path;
 
-    static BeeColony colony;
+    private BeeColony colony;
 
-    Fitness fitness;
+    private Fitness fitness;
+
+    private Dataset dataset;
+
+    int favouredPathID = 0;
 
 
     public Bee(int ID, BeeColony colony, Dataset dataset) throws IOException {
         this.ID = ID;
         this.colony = colony;
+        this.dataset = dataset;
         fitness = new Fitness(dataset, false);
         leftAllow = dataset.getSize();
+        cities = dataset.getSize();
         iteration = 0;
         path = new Integer[cities];
         setInitialPath();
         setAllowedCities();
-        fillFavouredPathForInitial();
+        favouredPath = path;
+        newPath = new Integer[cities];
     }
 
-    public void fillFavouredPathForInitial() {
-        for(int i = 0; i < favouredPath.length; i++) {
-            favouredPath[i] = -1;
-        }
+    public int getID() {
+        return ID;
     }
 
-    public void setInitialPath() {
+    private void setInitialPath() {
         path = initializePath(cities);
     }
 
     public void mainProcedure() {
-        if(iteration > 0) {
-            observeDance();
-        }
+        observeDance();
         searchNewPath();
         performWaggleDance();
     }
 
     //alle Städte sind von überall erreichbar oder nicht?
-    public void setAllowedCities() {
+    private void setAllowedCities() {
         allowedCities = new Integer[cities];
         for (int i = 0; i < cities; i++) {
             allowedCities[i] = i + 1;
         }
         leftAllow = cities;
-
-        //Collections.shuffle(Arrays.asList(allowedCities));
     }
 
-    /*
-    public int getRemainingAllowedCities() {
-        int counter = 0;
-        for(int i = 0; i < allowedCities.length; i++) {
-            if(!allowedCities[i].equals(-2))
-                counter++;
-        }
-        return counter;
-    }*/
-
-    public static Integer[] initializePath(int cities) {
-        Integer[] patharray = new Integer[cities];
+    private Integer[] initializePath(int cities) {
+        Integer[] pathArray = new Integer[cities];
         for (int i = 0; i < cities; i++) {
-            patharray[i] = i + 1;
+            pathArray[i] = i + 1;
         }
-
-        Collections.shuffle(Arrays.asList(patharray));
-
-        colony.addArrayToBestPath(patharray);
-
-        return patharray;
+        Collections.shuffle(Arrays.asList(pathArray));
+        colony.addArrayToBestPath(pathArray);
+        return pathArray;
     }
 
     //aus ArrayList einen zufälligen Pfad wählen
@@ -105,46 +90,54 @@ public class Bee {
         ArrayList<Integer[]> possiblePaths = colony.getBestPaths();
 
         Integer[] observedPath;
-        Path oldpath = new Path(path);
+        ArrayList<Integer[]> betterPaths = new ArrayList<>();
+        Path oldPath = new Path(path);
         Path obsPath;
 
         ArrayList<Evaluable> ev = new ArrayList<>();
-        int counter = 0;
 
-        do {
+        for(int i = 0; i < possiblePaths.size(); i++) {
             ev.clear();
-            int random = (int) (Math.random() * (possiblePaths.size()));
-            observedPath = possiblePaths.get(random);
+            observedPath = possiblePaths.get(i);
             obsPath = new Path(observedPath);
-            ev.add(oldpath);
+            ev.add(oldPath);
             ev.add(obsPath);
             fitness.evaluate(ev);
-            counter++;
-        } while(oldpath.getFitness() <= obsPath.getFitness() && counter <= possiblePaths.size());
 
-        return observedPath;
+            if (obsPath.getFitness() < oldPath.getFitness()) {
+                betterPaths.add(observedPath);
+            }
+        }
+
+        if(betterPaths.size() > 0) {
+            int random = (int) (Math.random() * betterPaths.size());
+            return betterPaths.get(random);
+        }
+        else {
+            return path;
+        }
     }
 
-    public void observeDance() {
-        path = observedPath();
+    private void observeDance() {
+        favouredPath = observedPath();
+        path = favouredPath;
     }
 
-    public Integer[] searchNewPath() {
+    private Integer[] searchNewPath() {
         setAllowedCities();
 
-        boolean isBetter = false;
         double bestProb = 0.0;
         double foundProb = 0.0;
         int bestNode = 0;
 
         //Der Startknoten des neuen Pfades ist auch der Startknoten den gespeicherten Pfades der Biene
-        newPath[0] = path[0];
+        newPath[0] = favouredPath[0];
 
         //Der Startknoten wird in allowedCities als besucht markiert
         for (int x = 0; x < allowedCities.length; x++) {
-            if(allowedCities[x] != -2) {
+            if (allowedCities[x] != -2) {
                 int a = allowedCities[x];
-                int b = path[0];
+                int b = ID;
 
                 if (a == b) {
                     allowedCities[x] = -2;
@@ -155,71 +148,74 @@ public class Bee {
         }
 
         //Fülle den neuen Pfad newPath mit Knoten
-        for(int i=0; i < (allowedCities.length-1); ++i) {
+        for (int i = 0; i < (allowedCities.length-1); ++i) {
             bestNode = -1;
-            bestProb = -1.0;
-            for(int j=0; j < allowedCities.length; ++j) {
-                if(allowedCities[j] != -2) {
-                    if (newPath[i] == null) {
-                        System.exit(-3);
-                    }
-                    foundProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(allowedCities[j]), i,  j);
+            bestProb = -1;
+
+            for (int j = 0; j < allowedCities.length; ++j) {
+                if (allowedCities[j] != -2) {
+                    foundProb = stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
 
                     if (bestNode == -1) {
                         bestNode = j;
-                    } else if (bestProb == -1.0) {
-                        bestProb = foundProb;
-                    } else if (foundProb <= bestProb) {
-                        bestNode = j;
                     }
-                } /*else if(j == 279) {
-                    j=0;
-                }*/
+                    if (bestProb == -1.0) {
+                        bestProb = foundProb;
+                    }
+                    if (foundProb >= bestProb) {
+                        bestNode = j;
+                        bestProb = foundProb;
+                    }
+                }
             }
 
-            if(bestNode != -1) {
-                newPath[i+1] = allowedCities[bestNode];
+            if (bestNode != -1) {
+                newPath[i + 1] = allowedCities[bestNode];
                 allowedCities[bestNode] = -2;
                 leftAllow--;
             }
-
         }
+
         iteration++;
         return newPath;
     }
 
-    public double arcfitness(Node cityj, int i) {
-
+    private double arcfitness(Node cityj, int i) {
         int AunionF = 1;
-        if(cityj.getId() == favouredPath[i]) {
+
+        if ((cityj.getId() == favouredPath[i])) {
             return bco.getGamma();
-        } else if (leftAllow > 1){
+        } else if (leftAllow > 1) {
             double a = 1.0 - bco.getGamma() * AunionF;
             double b = leftAllow - AunionF;
-            return a/b;
+            return a / b;
         } else {
             return 1;
         }
     }
 
     //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
-    public double stateTransitionProbability(Node cityi, Node cityj, int i, int j) {
-        double arcfitness = arcfitness(cityj, i);
-        double distance= Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
+    private double stateTransitionProbability(Node cityi, Node cityj, int i) {
+        double arcfitness = Math.pow(arcfitness(cityj, i), bco.getAlpha());
+        double distance = Math.pow(1.0 / cityi.distance(cityj), bco.getBeta());
 
         double result1 = arcfitness * distance;
 
         double result2 = 0.0;
-        for(int x = 0; x < leftAllow; x++) {
-            result2 += arcfitness * distance;
+        double result3 = 0.0;
+        for (Integer allowedCity : allowedCities) {
+            if (allowedCity != -2 && cityi.getId() != allowedCity) {
+                result2 += arcfitness(bco.getNodeByIDFromDataSet(allowedCity), i);
+                result3 += result2 * distance;
+            }
+
         }
-        double endresult = result1/result2;
+        double endresult = result1 / result3;
 
         return endresult;
     }
 
-    //Unter der Voraussetung, dass man von jedem Node zu jedem Node wechseln kann, wäre diese Methode überflüssig
-    public boolean shouldBeeDance() {
+    private boolean shouldBeeDance() {
         Path foundPath = new Path(newPath);
         Path oldPath = new Path(path);
 
@@ -227,33 +223,27 @@ public class Bee {
         ev.add(foundPath);
         ev.add(oldPath);
         fitness.evaluate(ev);
-        return (foundPath.getFitness() <= oldPath.getFitness());
+        return (foundPath.getFitness() < oldPath.getFitness());
     }
 
     //Path in ArrayList schreiben
-    public void performWaggleDance() {
+    private void performWaggleDance() {
         if (shouldBeeDance()) {
             path = newPath;
             colony.setBestPathsAtIndex(ID, path);
         }
-
-    }
-
-    public Integer[] getNewPath() {
-        return newPath;
     }
 
     public Integer[] getPath() {
         return path;
     }
 
-        /*
+    /*
     //Biene geht durch TSP und erstellt einen neuen Path mit berechneten Werten
     public Integer[] forageByTransRule() {
         double savedProb = 0.0;
         double newProb = 0.0;
         int bestPos;
-        int hello = 0;
 
         newPath[0] = path[0];
 
@@ -262,7 +252,6 @@ public class Bee {
             int a = allowedCities[x];
             int b = path[0];
 
-
             if (a == b) {
                 allowedCities[x] = -2;
                 leftAllow--;
@@ -270,8 +259,8 @@ public class Bee {
             }
         }
 
-        for (int i = 0; i < (path.length-1); ++i) {
-            savedProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(path[i+1]), i);
+        for (int i = 0; i < (path.length - 1); ++i) {
+            savedProb = stateTransitionProbability(bco.getNodeByIDFromDataSet(newPath[i]), bco.getNodeByIDFromDataSet(path[i + 1]), i);
             bestPos = -1;
 
             for (int j = 0; j < allowedCities.length; ++j) {
@@ -282,7 +271,7 @@ public class Bee {
 
                         for (int x = 0; x < allowedCities.length; x++) {
                             int a = allowedCities[x];
-                            int b = path[i+1];
+                            int b = path[i + 1];
                             if (a == b && a != -2) {
                                 bestPos = x;
                                 break;
@@ -291,25 +280,23 @@ public class Bee {
                     } else {
                         bestPos = j;
                     }
-                } else if (j == 279){
-                    hello = j;
                 }
-            }
 
-            if(bestPos != -1) {
-            //int q = allowedCities[bestPos];
-            //if(q != -2) {
-                //Beste Position in newPath speichern
-                newPath[i + 1] = allowedCities[bestPos];
-                //Löscht die besuchte Stadt um doppeltes Besuchen zu verhindern
-                allowedCities[bestPos] = -2;
-                leftAllow--;
-            } else {
-                System.exit(-3);
+                if (bestPos != -1) {
+                    //int q = allowedCities[bestPos];
+                    //if(q != -2) {
+                    //Beste Position in newPath speichern
+                    newPath[i + 1] = allowedCities[bestPos];
+                    //Löscht die besuchte Stadt um doppeltes Besuchen zu verhindern
+                    allowedCities[bestPos] = -2;
+                    leftAllow--;
+                } else {
+                    System.exit(-3);
+                }
+
             }
 
         }
         return newPath;
-    }
-    */
+    }*/
 }

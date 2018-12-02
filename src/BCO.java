@@ -45,9 +45,9 @@ public class BCO {
             }
             fitness.evaluate(evaluables);
         }
-        /*
+
         //eine Biene
-        Path b = new Path(colony.getBee(1).getPath());
+        /*Path b = new Path(colony.getBee(1).getPath());
         evaluables.add(b);
         fitness.evaluate(evaluables);
         for(int i = 0; i < 15; i++) {
@@ -56,8 +56,8 @@ public class BCO {
             evaluables.add(a);
             fitness.evaluate(evaluables);
             evaluables.clear();
-        }
-        */
+        }*/
+
     }
 
 
