@@ -2,50 +2,41 @@ import com.hsh.Evaluable;
 import com.hsh.Fitness;
 import com.hsh.parser.Dataset;
 import com.hsh.parser.Node;
-import java.io.IOException;
+
 import java.util.*;
 
 public class Bee {
 
     private int ID;
-
     private int iteration;
+    private static Integer[] path;
+    private final int cities;
+    private BeeColony colony;
+    private Fitness fitness;
+    private Dataset dataset;
 
     private BCO bco = new BCO();
 
-    private final int cities;
-
     //favorisierter Pfad
     private Integer[] favouredPath;
-
     //Set mit möglichen nächsten Städten A
     private Integer[] allowedCities;
-
+    private int leftAllow;
     //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
     private Integer[] newPath;
 
-    private int leftAllow;
-
-    private static Integer[] path;
-
-    private BeeColony colony;
-
-    private Fitness fitness;
-
-    private Dataset dataset;
-
-    int favouredPathID = 0;
-
-
-    public Bee(int ID, BeeColony colony, Dataset dataset) throws IOException {
+    public Bee(int ID, BeeColony colony, Dataset dataset) {
         this.ID = ID;
         this.colony = colony;
         this.dataset = dataset;
+
         fitness = new Fitness(dataset, false);
         leftAllow = dataset.getSize();
         cities = dataset.getSize();
+
         iteration = 0;
         path = new Integer[cities];
+
         setInitialPath();
         setAllowedCities();
         favouredPath = path;
@@ -104,7 +95,7 @@ public class Bee {
             ev.add(obsPath);
             fitness.evaluate(ev);
 
-            if (obsPath.getFitness() < oldPath.getFitness()) {
+            if (obsPath.getFitness() <= oldPath.getFitness()) {
                 betterPaths.add(observedPath);
             }
         }
@@ -112,8 +103,7 @@ public class Bee {
         if(betterPaths.size() > 0) {
             int random = (int) (Math.random() * betterPaths.size());
             return betterPaths.get(random);
-        }
-        else {
+        } else {
             return path;
         }
     }
@@ -181,12 +171,18 @@ public class Bee {
     }
 
     private double arcfitness(Node cityj, int i) {
-        int AunionF = 1;
+        int AunionF = 0;
+        for(int j = 0; j < allowedCities.length; j++) {
+            if(allowedCities[j] == favouredPath[i]) {
+                AunionF = 1;
+                break;
+            }
+        }
 
         if ((cityj.getId() == favouredPath[i])) {
-            return bco.getGamma();
+            return bco.getLambda();
         } else if (leftAllow > 1) {
-            double a = 1.0 - bco.getGamma() * AunionF;
+            double a = 1.0 - bco.getLambda() * AunionF;
             double b = leftAllow - AunionF;
             return a / b;
         } else {
@@ -203,9 +199,9 @@ public class Bee {
 
         double result2 = 0.0;
         double result3 = 0.0;
-        for (Integer allowedCity : allowedCities) {
-            if (allowedCity != -2 && cityi.getId() != allowedCity) {
-                result2 += arcfitness(bco.getNodeByIDFromDataSet(allowedCity), i);
+        for (int j = 0; j < allowedCities.length; j++) {
+            if (allowedCities[j] != -2 && cityi.getId() != allowedCities[j]) {
+                result2 += arcfitness(bco.getNodeByIDFromDataSet(allowedCities[j]), i);
                 result3 += result2 * distance;
             }
 
@@ -223,7 +219,7 @@ public class Bee {
         ev.add(foundPath);
         ev.add(oldPath);
         fitness.evaluate(ev);
-        return (foundPath.getFitness() < oldPath.getFitness());
+        return (foundPath.getFitness() <= oldPath.getFitness());
     }
 
     //Path in ArrayList schreiben
