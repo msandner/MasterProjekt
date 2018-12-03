@@ -9,7 +9,7 @@ public class Bee {
 
     private int ID;
     private int iteration;
-    private static Integer[] path;
+    private Integer[] path;
     private final int cities;
     private BeeColony colony;
     private Fitness fitness;
@@ -55,6 +55,11 @@ public class Bee {
         observeDance();
         searchNewPath();
         performWaggleDance();
+        //printFitnessOfPath();
+        if(ID == 19) {
+            colony.setBestPathsToNewBestPaths();
+            colony.clearNewBestPaths();
+        }
     }
 
     //alle Städte sind von überall erreichbar oder nicht?
@@ -226,12 +231,20 @@ public class Bee {
     private void performWaggleDance() {
         if (shouldBeeDance()) {
             path = newPath;
-            colony.setBestPathsAtIndex(ID, path);
+            colony.addArrayToNewBestPaths(path);
         }
     }
 
     public Integer[] getPath() {
         return path;
+    }
+
+    private void printFitnessOfPath() {
+        ArrayList<Evaluable> ev = new ArrayList<>();
+        Path path = new Path(newPath);
+        ev.add(path);
+        fitness.evaluate(ev);
+        System.out.println(path.getFitness());
     }
 
     /*

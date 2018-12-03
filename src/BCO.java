@@ -11,8 +11,8 @@ public class BCO {
 
     //Parameter von Wong vorgegeben
     private double alpha = 1.0;
-    private double beta = 20.0;
-    private double lambda = 0.99;
+    private double beta = 10.0;
+    private double lambda = 0.79;
     private static int cities;
 
     private static Dataset dataset;
@@ -42,10 +42,9 @@ public class BCO {
         for(int j = 0; j < 5; j++) {
             for (int i = 0; i < 20; i++) {
                 colony.getBee(i).mainProcedure();
-                Path b = new Path(colony.getBee(i).getPath());
-                evaluables.add(b);
             }
-            fitness.evaluate(evaluables);
+            fitness.evaluate(colony.getBestPathsAsEvaluable());
+            evaluables.clear();
         }
 
         //eine Biene
@@ -55,7 +54,7 @@ public class BCO {
         for(int i = 0; i < 15; i++) {
             colony.getBee(1).mainProcedure();
             Path a = new Path(colony.getBee(i).getPath());
-            evaluables.add(a);
+            evaluables.add(a );
             fitness.evaluate(evaluables);
             evaluables.clear();
         }*/
