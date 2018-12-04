@@ -10,10 +10,10 @@ import java.util.*;
 public class BCO {
 
     //Parameter von Wong vorgegeben
-    protected double alpha = 1.0;
-    protected double beta = 10.0;
-    protected double gamma = 0.99;
-    protected static int cities;
+    private double alpha = 1.0;
+    private double beta = 10.0;
+    private double lambda = 0.5;
+    private static int cities;
 
     private static Dataset dataset;
 
@@ -26,38 +26,27 @@ public class BCO {
         Fitness fitness = new Fitness(dataset);
 
         //Colony erstellen
+        int beecount = 20;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
-        BeeColony colony = new BeeColony(cities, dataset);
+        BeeColony colony = new BeeColony(beecount, dataset);
 
         //ganze Kolonie
-        for (int i = 0; i < cities; i++) {
+        //initialer Pfad als 0. Iteration
+        for (int i = 0; i < beecount; i++) {
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
         }
         fitness.evaluate(evaluables);
         evaluables.clear();
 
+        //weitere Iterationen
         for(int j = 0; j < 5; j++) {
-            for (int i = 0; i < cities; i++) {
+            for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
-                Path b = new Path(colony.getBee(i).getPath());
-                evaluables.add(b);
             }
-            fitness.evaluate(evaluables);
-        }
-
-        //eine Biene
-        /*Path b = new Path(colony.getBee(1).getPath());
-        evaluables.add(b);
-        fitness.evaluate(evaluables);
-        for(int i = 0; i < 15; i++) {
-            colony.getBee(1).mainProcedure();
-            Path a = new Path(colony.getBee(i).getPath());
-            evaluables.add(a);
-            fitness.evaluate(evaluables);
+            fitness.evaluate(colony.getBestPathsAsEvaluable());
             evaluables.clear();
-        }*/
-
+        }
     }
 
 
@@ -77,8 +66,9 @@ public class BCO {
         return beta;
     }
 
-    public double getGamma() {
-        return gamma;
+    public double getLambda() {
+        //return 1-(Math.random());
+        return lambda;
     }
 
 
