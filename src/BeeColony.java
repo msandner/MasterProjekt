@@ -2,7 +2,6 @@ import com.hsh.Evaluable;
 import com.hsh.Fitness;
 import com.hsh.parser.Dataset;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
@@ -40,7 +39,8 @@ public class BeeColony {
     public ArrayList<Evaluable> getBestPathsAsEvaluable() {
         ArrayList<Evaluable> ev = new ArrayList<>();
         for(int i = 0; i < bestPaths.size(); i++) {
-            ev.add(new Path(bestPaths.get(i)));
+            Path a = new Path(bestPaths.get(i));
+            ev.add(a);
         }
         return ev;
     }

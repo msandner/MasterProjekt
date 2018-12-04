@@ -12,7 +12,7 @@ public class BCO {
     //Parameter von Wong vorgegeben
     private double alpha = 1.0;
     private double beta = 10.0;
-    private double lambda = 0.79;
+    private double lambda = 0.99;
     private static int cities;
 
     private static Dataset dataset;
@@ -26,12 +26,13 @@ public class BCO {
         Fitness fitness = new Fitness(dataset);
 
         //Colony erstellen
+        int beecount = 20;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
-        BeeColony colony = new BeeColony(20, dataset);
+        BeeColony colony = new BeeColony(beecount, dataset);
 
         //ganze Kolonie
         //initialer Pfad als 0. Iteration
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < beecount; i++) {
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
         }
@@ -40,25 +41,12 @@ public class BCO {
 
         //weitere Iterationen
         for(int j = 0; j < 5; j++) {
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
             fitness.evaluate(colony.getBestPathsAsEvaluable());
             evaluables.clear();
         }
-
-        //eine Biene
-        /*Path b = new Path(colony.getBee(1).getPath());
-        evaluables.add(b);
-        fitness.evaluate(evaluables);
-        for(int i = 0; i < 15; i++) {
-            colony.getBee(1).mainProcedure();
-            Path a = new Path(colony.getBee(i).getPath());
-            evaluables.add(a );
-            fitness.evaluate(evaluables);
-            evaluables.clear();
-        }*/
-
     }
 
 

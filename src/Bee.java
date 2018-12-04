@@ -31,7 +31,6 @@ public class Bee {
         this.dataset = dataset;
 
         fitness = new Fitness(dataset, false);
-        leftAllow = dataset.getSize();
         cities = dataset.getSize();
 
         iteration = 0;
@@ -39,18 +38,9 @@ public class Bee {
 
         setInitialPath();
         setAllowedCities();
-        favouredPath = path;
+
         newPath = new Integer[cities];
     }
-
-    public int getID() {
-        return ID;
-    }
-
-    private void setInitialPath() {
-        path = initializePath(cities);
-    }
-
     public void mainProcedure() {
         observeDance();
         searchNewPath();
@@ -62,13 +52,9 @@ public class Bee {
         }
     }
 
-    //alle Städte sind von überall erreichbar oder nicht?
-    private void setAllowedCities() {
-        allowedCities = new Integer[cities];
-        for (int i = 0; i < cities; i++) {
-            allowedCities[i] = i + 1;
-        }
-        leftAllow = cities;
+    private void setInitialPath() {
+        path = initializePath(cities);
+        favouredPath = path;
     }
 
     private Integer[] initializePath(int cities) {
@@ -81,9 +67,14 @@ public class Bee {
         return pathArray;
     }
 
+    private void observeDance() {
+        favouredPath = observedPath();
+        path = favouredPath;
+    }
+
     //aus ArrayList einen zufälligen Pfad wählen
     public Integer[] observedPath() {
-        ArrayList<Integer[]> possiblePaths = colony.getBestPaths();
+        List<Integer[]> possiblePaths = colony.getBestPaths();
 
         Integer[] observedPath;
         ArrayList<Integer[]> betterPaths = new ArrayList<>();
@@ -100,7 +91,7 @@ public class Bee {
             ev.add(obsPath);
             fitness.evaluate(ev);
 
-            if (obsPath.getFitness() <= oldPath.getFitness()) {
+            if (obsPath.getFitness() < oldPath.getFitness()) {
                 betterPaths.add(observedPath);
             }
         }
@@ -113,9 +104,13 @@ public class Bee {
         }
     }
 
-    private void observeDance() {
-        favouredPath = observedPath();
-        path = favouredPath;
+    //alle Städte sind von überall erreichbar oder nicht?
+    private void setAllowedCities() {
+        allowedCities = new Integer[cities];
+        for (int i = 0; i < cities; i++) {
+            allowedCities[i] = i + 1;
+        }
+        leftAllow = cities;
     }
 
     private Integer[] searchNewPath() {
@@ -132,7 +127,7 @@ public class Bee {
         for (int x = 0; x < allowedCities.length; x++) {
             if (allowedCities[x] != -2) {
                 int a = allowedCities[x];
-                int b = ID;
+                int b = newPath[0];
 
                 if (a == b) {
                     allowedCities[x] = -2;
@@ -206,7 +201,7 @@ public class Bee {
         double result3 = 0.0;
         for (int j = 0; j < allowedCities.length; j++) {
             if (allowedCities[j] != -2 && cityi.getId() != allowedCities[j]) {
-                result2 += arcfitness(bco.getNodeByIDFromDataSet(allowedCities[j]), i);
+                result2 += arcfitness(dataset.getNodeByID(allowedCities[j]), i);
                 result3 += result2 * distance;
             }
 
