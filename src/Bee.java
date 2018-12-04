@@ -54,7 +54,6 @@ public class Bee {
 
     private void setInitialPath() {
         path = initializePath(cities);
-        favouredPath = path;
     }
 
     private Integer[] initializePath(int cities) {
@@ -69,7 +68,6 @@ public class Bee {
 
     private void observeDance() {
         favouredPath = observedPath();
-        path = favouredPath;
     }
 
     //aus ArrayList einen zufälligen Pfad wählen
@@ -193,7 +191,7 @@ public class Bee {
     //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
     private double stateTransitionProbability(Node cityi, Node cityj, int i) {
         double arcfitness = Math.pow(arcfitness(cityj, i), bco.getAlpha());
-        double distance = Math.pow(1.0 / cityi.distance(cityj), bco.getBeta());
+        double distance = Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
 
         double result1 = arcfitness * distance;
 

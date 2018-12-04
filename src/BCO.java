@@ -12,7 +12,7 @@ public class BCO {
     //Parameter von Wong vorgegeben
     private double alpha = 1.0;
     private double beta = 10.0;
-    private double lambda = 0.99;
+    private double lambda = 0.5;
     private static int cities;
 
     private static Dataset dataset;
