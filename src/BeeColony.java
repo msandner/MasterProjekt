@@ -38,6 +38,13 @@ public class BeeColony {
 
     public ArrayList<Evaluable> getBestPathsAsEvaluable() {
         ArrayList<Evaluable> ev = new ArrayList<>();
+
+        //Alle neuen Pfade der Bienen in die zu evaluierende Liste schreiben
+        //Notwendig, damit Bienen nicht bereits auf die neu gefunden Pfade der vorherigen Bienen der gleichen Iteration zugreifen können
+        setBestPathsToNewBestPaths();
+        clearNewBestPaths();
+
+
         for(int i = 0; i < bestPaths.size(); i++) {
             Path a = new Path(bestPaths.get(i));
             ev.add(a);
@@ -59,6 +66,12 @@ public class BeeColony {
     }
 
     public void setBestPathsToNewBestPaths() {
+        ArrayList<Integer[]> bestArray = new ArrayList<>();
+
+        for( int i=0; i <= bestPaths.size(); ++i) {
+
+        }
+
         bestPaths.clear();
         bestPaths.addAll(newBestPaths);
     }

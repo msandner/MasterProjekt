@@ -14,6 +14,7 @@ public class Bee {
     private BeeColony colony;
     private Fitness fitness;
     private Dataset dataset;
+    private double insArc;
 
     private BCO bco = new BCO();
 
@@ -46,10 +47,6 @@ public class Bee {
         searchNewPath();
         performWaggleDance();
         //printFitnessOfPath();
-        if(ID == 19) {
-            colony.setBestPathsToNewBestPaths();
-            colony.clearNewBestPaths();
-        }
     }
 
     private void setInitialPath() {
@@ -114,11 +111,18 @@ public class Bee {
     private Integer[] searchNewPath() {
         setAllowedCities();
 
+        ArrayList<Integer> allowed = new ArrayList();
+        ArrayList<Double> randArray = new ArrayList();
         double bestProb = 0.0;
+        double result = 0.0;
         double foundProb = 0.0;
         int bestNode = 0;
 
-        //Der Startknoten des neuen Pfades ist auch der Startknoten den gespeicherten Pfades der Biene
+        for(int i : allowedCities) {
+            allowed.add(i);
+        }
+
+        //Der Startknoten des neuen Pfades ist auch der Startknoten des gespeicherten Pfades der Biene
         newPath[0] = favouredPath[0];
 
         //Der Startknoten wird in allowedCities als besucht markiert
@@ -129,6 +133,7 @@ public class Bee {
 
                 if (a == b) {
                     allowedCities[x] = -2;
+                    allowed.remove(x);
                     leftAllow--;
                     break;
                 }
@@ -143,7 +148,9 @@ public class Bee {
             for (int j = 0; j < allowedCities.length; ++j) {
                 if (allowedCities[j] != -2) {
                     foundProb = stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
+                    randArray.add(foundProb);
 
+                    /*
                     if (bestNode == -1) {
                         bestNode = j;
                     }
@@ -154,16 +161,56 @@ public class Bee {
                         bestNode = j;
                         bestProb = foundProb;
                     }
+                    */
                 }
             }
 
-            if (bestNode != -1) {
-                newPath[i + 1] = allowedCities[bestNode];
-                allowedCities[bestNode] = -2;
-                leftAllow--;
+            for (int x=0; x<randArray.size(); ++x) {
+              result += randArray.get(x);
             }
+            //System.out.println("randArray:" +result);
+
+            for (int y=0; y< randArray.size(); ++y) {
+                randArray.set(y, randArray.get(y)/result);
+                //System.out.println(randArray.get(y));
+            }
+            result = 0.0;
+            double rand = Math.random();
+            double randResult = 0.0;
+            int index = 0;
+            for (int z=0; z< randArray.size(); ++z) {
+
+                randResult += randArray.get(z);
+                //System.out.println(rand + "   " + randResult);
+                if(randResult >= rand) {
+                    index = z;
+                    break;
+                }
+            }
+            randArray.clear();
+            //System.out.println("Arcfitness:" +insArc);
+            insArc = 0;
+            //System.out.println(index);
+                newPath[i + 1] = allowed.get(index);
+
+                for (int a=0; a<allowedCities.length; ++a) {
+                    int d = allowed.get(index);
+                    int e = allowedCities[a];
+                    if(d == e) {
+                        allowedCities[a] = -2;
+                        break;
+                    }
+                }
+
+                //allowedCities[allowed.get(index) - 1] = -2;
+                allowed.remove(index);
+                leftAllow--;
+
         }
 
+        //System.out.println(Arrays.equals(favouredPath, newPath));
+        //System.out.println(Arrays.toString(favouredPath));
+        //System.out.println(Arrays.toString(newPath));
         iteration++;
         return newPath;
     }
@@ -193,7 +240,11 @@ public class Bee {
         double arcfitness = Math.pow(arcfitness(cityj, i), bco.getAlpha());
         double distance = Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
 
+        //System.out.println(distance);
         double result1 = arcfitness * distance;
+
+
+        insArc += arcfitness;
 
         double result2 = 0.0;
         double result3 = 0.0;
