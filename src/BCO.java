@@ -26,7 +26,7 @@ public class BCO {
         Fitness fitness = new Fitness(dataset);
 
         //Colony erstellen
-        int beecount = 20;
+        int beecount = 50;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
         BeeColony colony = new BeeColony(beecount, dataset);
 
@@ -46,7 +46,7 @@ public class BCO {
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
-            Evaluable[] evas = fitness.evaluate(colony.getBestPathsAsEvaluable());
+            Evaluable[] evas = fitness.evaluate(colony.getResultPathsAsEvaluable(20));
             for(Evaluable eva : evas){
                 if(!eva.isValid()) {
                     System.out.println(eva.getErrorCode());

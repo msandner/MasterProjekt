@@ -37,11 +37,16 @@ public class Bee {
         iteration = 0;
         path = new Integer[cities];
 
+        if(colony.defaultArray == null) {
+            colony.setDefaultArray(cities);
+        }
+
         setInitialPath();
         setAllowedCities();
 
         newPath = new Integer[cities];
     }
+
     public void mainProcedure() {
         observeDance();
         searchNewPath();
@@ -50,16 +55,17 @@ public class Bee {
     }
 
     private void setInitialPath() {
-        path = initializePath(cities);
+        path = initializePath();
     }
 
-    private Integer[] initializePath(int cities) {
-        Integer[] pathArray = new Integer[cities];
-        for (int i = 0; i < cities; i++) {
-            pathArray[i] = i + 1;
-        }
+    private Integer[] initializePath() {
+        Integer[] pathArray = colony.defaultArray.clone();
         Collections.shuffle(Arrays.asList(pathArray));
         colony.addArrayToBestPath(pathArray);
+
+        Path initPath = new Path(pathArray);
+        colony.addPathToResultPaths(initPath);
+
         return pathArray;
     }
 
@@ -102,25 +108,20 @@ public class Bee {
     //alle Städte sind von überall erreichbar oder nicht?
     private void setAllowedCities() {
         allowedCities = new Integer[cities];
-        for (int i = 0; i < cities; i++) {
-            allowedCities[i] = i + 1;
-        }
+
+        allowedCities = colony.defaultArray.clone();
         leftAllow = cities;
     }
 
     private Integer[] searchNewPath() {
         setAllowedCities();
 
-        ArrayList<Integer> allowed = new ArrayList();
+        ArrayList<Integer> allowed = new ArrayList(colony.defaultArrayList);
         ArrayList<Double> randArray = new ArrayList();
         double bestProb = 0.0;
         double result = 0.0;
         double foundProb = 0.0;
         int bestNode = 0;
-
-        for(int i : allowedCities) {
-            allowed.add(i);
-        }
 
         //Der Startknoten des neuen Pfades ist auch der Startknoten des gespeicherten Pfades der Biene
         newPath[0] = favouredPath[0];
@@ -217,12 +218,20 @@ public class Bee {
 
     private double arcfitness(Node cityj, int i) {
         int AunionF = 0;
+
+        /*
+        if(Arrays.stream(allowedCities).anyMatch(favouredPath[i]::equals)) {
+            AunionF = 1;
+        }
+        */
+
         for(int j = 0; j < allowedCities.length; j++) {
             if(allowedCities[j] == favouredPath[i]) {
                 AunionF = 1;
                 break;
             }
         }
+
 
         if ((cityj.getId() == favouredPath[i])) {
             return bco.getLambda();
@@ -248,6 +257,7 @@ public class Bee {
 
         double result2 = 0.0;
         double result3 = 0.0;
+
         for (int j = 0; j < allowedCities.length; j++) {
             if (allowedCities[j] != -2 && cityi.getId() != allowedCities[j]) {
                 result2 += arcfitness(dataset.getNodeByID(allowedCities[j]), i);
@@ -275,6 +285,7 @@ public class Bee {
     private void performWaggleDance() {
         if (shouldBeeDance()) {
             path = newPath;
+            colony.addPathToResultPaths(new Path(newPath));
             colony.addArrayToNewBestPaths(path);
         }
     }
