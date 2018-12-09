@@ -4,20 +4,25 @@ import com.hsh.parser.Dataset;
 import com.hsh.parser.Node;
 import com.hsh.parser.Parser;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public class BCO {
 
-    //Parameter von Wong vorgegeben
+    //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
     private double alpha = 1.0;
-    private double beta = 0.25;
+    private double beta = 0.1;
     private double lambda = 0.5;
+
     private static int cities;
 
     private static Dataset dataset;
 
     public static void main(String[] args) throws IOException {
+        //Dataset wird als erstes Programmargument übergeben
+        //String pathToData = args[0];
+
         //Dataset vorbereiten
         String pathToData = "a280.tsp";
         dataset = Parser.read(pathToData);
@@ -26,39 +31,31 @@ public class BCO {
         Fitness fitness = new Fitness(dataset);
 
         //Colony erstellen
-        int beecount = 50;
+        int beecount = 30;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
         BeeColony colony = new BeeColony(beecount, dataset);
 
-        //ganze Kolonie
         //initialer Pfad als 0. Iteration
         for (int i = 0; i < beecount; i++) {
             Path a = new Path(colony.getBee(i).getPath());
-
             evaluables.add(a);
         }
         fitness.evaluate(evaluables);
 
-        evaluables.clear();
-
         //weitere Iterationen
         for(int j = 0; j < 5; j++) {
+            evaluables.clear();
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
             Evaluable[] evas = fitness.evaluate(colony.getResultPathsAsEvaluable(20));
+
             for(Evaluable eva : evas){
                 if(!eva.isValid()) {
                     System.out.println(eva.getErrorCode());
                 }
             }
-            evaluables.clear();
         }
-    }
-
-
-    public Node getNodeByIDFromDataSet(int id){
-        return dataset.getNodeByID(id);
     }
 
     public int getCityCount() {
@@ -66,7 +63,7 @@ public class BCO {
     }
 
     public double getAlpha() {
-      return alpha;
+        return alpha;
     }
 
     public double getBeta() {
@@ -74,7 +71,6 @@ public class BCO {
     }
 
     public double getLambda() {
-        //return 1-(Math.random());
         return lambda;
     }
 

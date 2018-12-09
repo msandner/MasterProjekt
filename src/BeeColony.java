@@ -7,66 +7,32 @@ import java.util.ArrayList;
 
 public class BeeColony {
 
-    private int beeCount;
     private ArrayList<Bee> colony;
+
     //Pfade die in die nächste Iteration eingehen, um für die Bienen als favouredPath zu dienen
     private ArrayList<Integer[]> bestPaths;
+
     //Pfade die von den Bienen gefunden werden
     private ArrayList<Integer[]> newBestPaths;
+
     //Pfade die zur Evaluation gegeben werden
     private ArrayList<Path> resultPaths = new ArrayList<>();
+
     //default Array mit sortierten IDs der Größe cities
-    public Integer[] defaultArray;
-    public ArrayList<Integer> defaultArrayList;
-    Fitness fitness;
+    private Integer[] defaultArray;
+    private ArrayList<Integer> defaultArrayList;
+
+    private Fitness fitness;
 
     public BeeColony(int beeCount, Dataset dataset) throws IOException {
-        this.beeCount = beeCount;
         colony = new ArrayList<>();
         bestPaths = new ArrayList<>();
         newBestPaths = new ArrayList<>();
         fitness = new Fitness(dataset, false);
-
         for (int i = 0; i < beeCount; i++) {
             colony.add(new Bee(i, this, dataset));
         }
 
-    }
-
-    public Bee getBee(int index) {
-        return colony.get(index);
-    }
-
-    public ArrayList<Integer[]> getBestPaths() {
-        return bestPaths;
-    }
-
-    public ArrayList<Integer[]> getNewBestPaths() {
-        return newBestPaths;
-    }
-
-    public ArrayList<Evaluable> getBestPathsAsEvaluable() {
-        ArrayList<Evaluable> ev = new ArrayList<>();
-
-        //Alle neuen Pfade der Bienen in die zu evaluierende Liste schreiben
-        //Notwendig, damit Bienen nicht bereits auf die neu gefunden Pfade der vorherigen Bienen der gleichen Iteration zugreifen können
-        setBestPathsToNewBestPaths();
-        clearNewBestPaths();
-
-
-        for(int i = 0; i < bestPaths.size(); i++) {
-            Path a = new Path(bestPaths.get(i));
-            ev.add(a);
-        }
-        return ev;
-    }
-
-    public void addArrayToBestPath(Integer[] path) {
-        bestPaths.add(path);
-    }
-
-    public void addArrayToNewBestPaths(Integer[] path) {
-        newBestPaths.add(path);
     }
 
     public void clearNewBestPaths() {
@@ -79,8 +45,21 @@ public class BeeColony {
         bestPaths.addAll(newBestPaths);
     }
 
+    public void addArrayToBestPath(Integer[] path) {
+        bestPaths.add(path);
+    }
+
+    public void addArrayToNewBestPaths(Integer[] path) {
+        newBestPaths.add(path);
+    }
+
     //Fügt den gefundenen Pfad in eine nach der Fitness sortierten Liste ein
     public void addPathToResultPaths (Path foundPath) {
+        //Alle neuen Pfade der Bienen in die zu evaluierende Liste schreiben
+        //Notwendig, damit Bienen nicht bereits auf die neu gefunden Pfade der vorherigen Bienen der gleichen Iteration zugreifen können
+        setBestPathsToNewBestPaths();
+        clearNewBestPaths();
+
         ArrayList<Evaluable> ev = new ArrayList<>();
         Path indexPath;
 
@@ -92,7 +71,7 @@ public class BeeColony {
         //Falls in der Liste noch nichts drin steht, den gefundenen Pfad einfach einfügen
         if(resultPaths.size() == 0) {
             resultPaths.add(foundPath);
-        // Sonst suche die Position an der der Pfad gespeichert werden soll
+            // Sonst suche die Position an der der Pfad gespeichert werden soll
         } else {
             int loopCount = resultPaths.size();
             for (int i = 0; i < loopCount; ++i) {
@@ -140,11 +119,22 @@ public class BeeColony {
             defaultArray[i] = i+1;
             defaultArrayList.add(i+1);
         }
-
     }
 
-    public int danceDuration() {
-        //ToDo
-        return 0;
+    public Integer[] getDefaultArray() {
+        return defaultArray;
     }
+
+    public ArrayList<Integer> getDefaultArrayList() {
+        return defaultArrayList;
+    }
+
+    public Bee getBee(int index) {
+        return colony.get(index);
+    }
+
+    public ArrayList<Integer[]> getBestPaths() {
+        return bestPaths;
+    }
+
 }
