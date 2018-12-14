@@ -48,8 +48,7 @@ public class Bee {
 
     public void mainProcedure() {
         observeDance();
-        searchNewPath();
-        performWaggleDance();
+        performWaggleDance(searchNewPath());
     }
 
     private void setInitialPath() {
@@ -110,13 +109,15 @@ public class Bee {
         leftAllow = cities;
     }
 
-    private void searchNewPath() {
+    private Path searchNewPath() {
         setAllowedCities();
+
+        Path foundPath;
 
         ArrayList<Integer> allowed = new ArrayList(colony.getDefaultArrayList());
         ArrayList<Double> randArray = new ArrayList();
         double result = 0.0;
-        double foundProb = 0.0;
+        double foundProb;
 
         //Der Startknoten des neuen Pfades ist auch der Startknoten des gespeicherten Pfades der Biene
         newPath[0] = favouredPath[0];
@@ -142,31 +143,17 @@ public class Bee {
                 if (allowedCities[j] != -2) {
                     foundProb = stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
                     randArray.add(foundProb);
-
-                    /*
-                    if (bestNode == -1) {
-                        bestNode = j;
-                    }
-                    if (bestProb == -1.0) {
-                        bestProb = foundProb;
-                    }
-                    if (foundProb >= bestProb) {
-                        bestNode = j;
-                        bestProb = foundProb;
-                    }
-                    */
                 }
             }
 
             for (int x=0; x<randArray.size(); ++x) {
                 result += randArray.get(x);
             }
-            //System.out.println("randArray:" +result);
 
             for (int y=0; y< randArray.size(); ++y) {
                 randArray.set(y, randArray.get(y)/result);
-                //System.out.println(randArray.get(y));
             }
+
             result = 0.0;
             double rand = Math.random();
             double randResult = 0.0;
@@ -174,14 +161,13 @@ public class Bee {
             for (int z=0; z< randArray.size(); ++z) {
 
                 randResult += randArray.get(z);
-                //System.out.println(rand + "   " + randResult);
                 if(randResult >= rand) {
                     index = z;
                     break;
                 }
             }
             randArray.clear();
-            //System.out.println(index);
+
             newPath[i + 1] = allowed.get(index);
 
             for (int a=0; a<allowedCities.length; ++a) {
@@ -192,14 +178,16 @@ public class Bee {
                     break;
                 }
             }
-            //allowedCities[allowed.get(index) - 1] = -2;
+
             allowed.remove(index);
             leftAllow--;
         }
-        //System.out.println(Arrays.equals(favouredPath, newPath));
-        //System.out.println(Arrays.toString(favouredPath));
-        //System.out.println(Arrays.toString(newPath));
+
         iteration++;
+
+        foundPath = new Path(newPath);
+        return foundPath;
+
     }
 
     private double arcfitness(Node cityj, int i) {
@@ -254,10 +242,10 @@ public class Bee {
     }
 
     //Path in ArrayList schreiben
-    private void performWaggleDance() {
+    private void performWaggleDance(Path foundPath) {
         if (shouldBeeDance()) {
             path = newPath.clone();
-            colony.addPathToResultPaths(new Path(newPath));
+            colony.addPathToResultPaths(foundPath);
             colony.addArrayToNewBestPaths(path);
         }
     }
