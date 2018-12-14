@@ -24,7 +24,7 @@ public class BeeColony {
 
     private Fitness fitness;
 
-    public BeeColony(int beeCount, Dataset dataset) throws IOException {
+    public BeeColony(int beeCount, Dataset dataset) {
         colony = new ArrayList<>();
         bestPaths = new ArrayList<>();
         newBestPaths = new ArrayList<>();
@@ -60,13 +60,10 @@ public class BeeColony {
         setBestPathsToNewBestPaths();
         clearNewBestPaths();
 
-        ArrayList<Evaluable> ev = new ArrayList<>();
         Path indexPath;
 
         //Pfad für spätere Verwendung evaluieren
-        ev.add(foundPath);
-        fitness.evaluate(ev);
-
+        fitness.evaluate(foundPath, -1);
 
         //Falls in der Liste noch nichts drin steht, den gefundenen Pfad einfach einfügen
         if(resultPaths.size() == 0) {
@@ -87,14 +84,6 @@ public class BeeColony {
                 resultPaths.add(foundPath);
             }
         }
-    }
-
-    //Es werden nur die x besten Pfade zur Evaluation geschickt
-    //Sollte resultPaths größer werden als x, werden die Pfade die hinten stehen einfach gelöscht
-    //Da die Liste nach der Fitness sortiert ist, sind die Pfade die man löscht, die mit der schlechtesten Fitness
-    public ArrayList<Path> shrinkList(ArrayList<Path> list, int size) {
-        ArrayList<Path> shrinkedList = new ArrayList<>(list.subList(0, size));
-        return shrinkedList;
     }
 
     public ArrayList<Evaluable> getResultPathsAsEvaluable(int listSize) {

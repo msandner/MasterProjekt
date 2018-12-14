@@ -12,8 +12,8 @@ public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
     private double alpha = 1.0;
-    private double beta = 10;
-    private double lambda = 0.75;
+    private double beta = 8;
+    private double lambda = 0.7;
 
     private static int cities;
 
@@ -21,17 +21,17 @@ public class BCO {
 
     public static void main(String[] args) throws IOException {
         //Dataset wird als erstes Programmargument übergeben
-        String pathToData = args[0];
+        //String pathToData = args[0];
 
         //Dataset vorbereiten
-        //String pathToData = "a280.tsp";
+        String pathToData = "eil101.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
         Fitness fitness = new Fitness(dataset);
 
         //Colony erstellen
-        int beecount = 25;
+        int beecount = 280;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
         BeeColony colony = new BeeColony(beecount, dataset);
 
