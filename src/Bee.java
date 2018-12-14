@@ -7,16 +7,16 @@ public class Bee {
 
     private int ID;
     private int iteration;
-    private Integer[] path;
+
+    //favorisierter Pfad
+    private Integer[] favouredPath;
+
     private final int cities;
     private BeeColony colony;
     private Fitness fitness;
     private Dataset dataset;
 
     private BCO bco = new BCO();
-
-    //favorisierter Pfad
-    private Integer[] favouredPath;
 
     //Set mit möglichen nächsten Städten A
     private Integer[] allowedCities;
@@ -34,7 +34,7 @@ public class Bee {
         cities = dataset.getSize();
 
         iteration = 0;
-        path = new Integer[cities];
+        favouredPath = new Integer[cities];
 
         if(colony.getDefaultArray() == null) {
             colony.setDefaultArray(cities);
@@ -52,7 +52,7 @@ public class Bee {
     }
 
     private void setInitialPath() {
-        path = initializePath();
+        favouredPath = initializePath();
     }
 
     //initialer Pfad = zufällige Anordnung der Knoten
@@ -65,7 +65,7 @@ public class Bee {
 
         //zu ResultPath ArrayList hinzufügen
         Path initPath = new Path(pathArray);
-        colony.addPathToResultPaths(initPath);
+        colony.addPathToResultPaths(initPath, pathArray);
 
         return pathArray;
     }
@@ -73,13 +73,17 @@ public class Bee {
     //aus ArrayList einen zufälligen Pfad wählen
     private void observeDance() {
         //alle Pfade, die beobachtet werden können, aus BestPaths kriegen
-        List<Integer[]> possiblePaths = colony.getBestPaths();
+        List<Integer[]> possiblePaths = colony.getBestPaths(10);
 
+        int randValue = (int)(Math.random() * possiblePaths.size());
+        favouredPath = possiblePaths.get(randValue);
+
+        /*
         Integer[] observedPath;
         ArrayList<Integer[]> betterPaths = new ArrayList<>();
 
         //alten Pfad evaluieren
-        Path oldPath = new Path(path);
+        Path oldPath = new Path(favouredPath);
         fitness.evaluate(oldPath, -1);
 
         Path obsPath;
@@ -97,10 +101,8 @@ public class Bee {
             //einen zufälligen Pfad aus allen besseren Pfaden auswählen
             int random = (int) (Math.random() * betterPaths.size());
             favouredPath = betterPaths.get(random);
-        } else {
-            //sonst alten Pfad behalten
-            favouredPath = path.clone();
         }
+        */
     }
 
     private void setAllowedCities() {
@@ -111,11 +113,15 @@ public class Bee {
 
     private Path searchNewPath() {
         setAllowedCities();
+        int count;
+        double rand;
+        double randResult;
+        int index;
 
-        Path foundPath;
 
         ArrayList<Integer> allowed = new ArrayList(colony.getDefaultArrayList());
         ArrayList<Double> randArray = new ArrayList();
+
         double result = 0.0;
         double foundProb;
 
@@ -137,38 +143,37 @@ public class Bee {
             }
         }
 
+
         //Fülle den neuen Pfad newPath mit Knoten
         for (int i = 0; i < (allowedCities.length-1); ++i) {
+            count = 0;
             for (int j = 0; j < allowedCities.length; ++j) {
                 if (allowedCities[j] != -2) {
                     foundProb = stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
                     randArray.add(foundProb);
+                    result += randArray.get(count);
+                    count++;
                 }
             }
 
-            for (int x=0; x<randArray.size(); ++x) {
-                result += randArray.get(x);
-            }
+            rand = Math.random();
+            randResult = 0.0;
+            index = 0;
 
-            for (int y=0; y< randArray.size(); ++y) {
-                randArray.set(y, randArray.get(y)/result);
-            }
-
-            result = 0.0;
-            double rand = Math.random();
-            double randResult = 0.0;
-            int index = 0;
             for (int z=0; z< randArray.size(); ++z) {
-
+                randArray.set(z, randArray.get(z)/1.0);
                 randResult += randArray.get(z);
                 if(randResult >= rand) {
                     index = z;
                     break;
                 }
             }
+
+            result = 0.0;
             randArray.clear();
 
-            newPath[i + 1] = allowed.get(index);
+            newPath[i+1] = allowed.get(index);
+
 
             for (int a=0; a<allowedCities.length; ++a) {
                 int d = allowed.get(index);
@@ -185,8 +190,7 @@ public class Bee {
 
         iteration++;
 
-        foundPath = new Path(newPath);
-        return foundPath;
+        return (new Path(newPath));
 
     }
 
@@ -235,22 +239,24 @@ public class Bee {
     //true, wenn der neue gefundene Pfad besser ist als der alte
     private boolean shouldBeeDance() {
         Path foundPath = new Path(newPath);
-        Path oldPath = new Path(path);
+        Path oldPath = new Path(favouredPath);
+
         fitness.evaluate(foundPath, -1);
         fitness.evaluate(oldPath, -1);
+
         return (foundPath.getFitness() <= oldPath.getFitness());
     }
 
     //Path in ArrayList schreiben
     private void performWaggleDance(Path foundPath) {
         if (shouldBeeDance()) {
-            path = newPath.clone();
-            colony.addPathToResultPaths(foundPath);
-            colony.addArrayToNewBestPaths(path);
+            favouredPath = newPath.clone();
+            colony.addPathToResultPaths(foundPath, favouredPath);
+            //colony.addArrayToNewBestPaths(favouredPath);
         }
     }
 
     public Integer[] getPath() {
-        return path;
+        return favouredPath;
     }
 }

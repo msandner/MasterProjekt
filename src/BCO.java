@@ -24,14 +24,14 @@ public class BCO {
         //String pathToData = args[0];
 
         //Dataset vorbereiten
-        String pathToData = "eil101.tsp";
+        String pathToData = "a280.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
         Fitness fitness = new Fitness(dataset);
 
         //Colony erstellen
-        int beecount = 280;
+        int beecount = 25;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
         BeeColony colony = new BeeColony(beecount, dataset);
 
@@ -41,6 +41,7 @@ public class BCO {
             evaluables.add(a);
         }
         fitness.evaluate(evaluables);
+
 
         //weitere Iterationen
         for(int j = 0; j < 5; j++) {
