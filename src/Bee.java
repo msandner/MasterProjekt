@@ -63,7 +63,7 @@ public class Bee {
         //zu BestPath ArrayList hinzufügen
         colony.addArrayToBestPath(pathArray);
 
-        //zu ResultPath ArrayList hinzufügen
+        //zu ResultPaths und NewBestPaths hinzufügen
         Path initPath = new Path(pathArray);
         colony.addPathToResultPaths(initPath, pathArray);
 
@@ -77,32 +77,6 @@ public class Bee {
 
         int randValue = (int)(Math.random() * possiblePaths.size());
         favouredPath = possiblePaths.get(randValue);
-
-        /*
-        Integer[] observedPath;
-        ArrayList<Integer[]> betterPaths = new ArrayList<>();
-
-        //alten Pfad evaluieren
-        Path oldPath = new Path(favouredPath);
-        fitness.evaluate(oldPath, -1);
-
-        Path obsPath;
-        for(int i = 0; i < possiblePaths.size(); i++) {
-            //alle Pfade mit dem alten Pfad vergleichen, um die Besseren abzuspeichern
-            observedPath = possiblePaths.get(i);
-            obsPath = new Path(observedPath);
-            fitness.evaluate(obsPath, -1);
-            if (obsPath.getFitness() < oldPath.getFitness()) {
-                betterPaths.add(observedPath);
-            }
-        }
-
-        if(betterPaths.size() > 0) {
-            //einen zufälligen Pfad aus allen besseren Pfaden auswählen
-            int random = (int) (Math.random() * betterPaths.size());
-            favouredPath = betterPaths.get(random);
-        }
-        */
     }
 
     private void setAllowedCities() {
@@ -252,7 +226,6 @@ public class Bee {
         if (shouldBeeDance()) {
             favouredPath = newPath.clone();
             colony.addPathToResultPaths(foundPath, favouredPath);
-            //colony.addArrayToNewBestPaths(favouredPath);
         }
     }
 
