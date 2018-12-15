@@ -39,14 +39,14 @@ public class BeeColony {
     }
 
     //Setzt foundPaths auf die x besten Pfade, damit die Liste nicht immer weiter wächst
-    public void clearFoundPaths(int listSize) {
+    private void clearFoundPaths(int listSize) {
         ArrayList<Integer[]> shrinkedList = new ArrayList<>(foundPaths.subList(0,listSize));
         foundPaths.clear();
         foundPaths = shrinkedList;
     }
 
     //Setzt das Array aus dem die Bienen der nächsten Iteration ihre favorisierten Pfade beziehen auf die x besten Pfade die gefunden wurden
-    public void setBestPathsToFoundPaths() {
+    private void setBestPathsToFoundPaths() {
         bestPaths.clear();
         bestPaths.addAll(foundPaths);
     }
@@ -64,12 +64,13 @@ public class BeeColony {
 
         //Pfad für spätere Verwendung evaluieren
         fitness.evaluate(foundPath, -1);
-        //Falls in der Liste noch nichts drin steht, den gefundenen Pfad einfach einfügen
+
         if(resultPaths.size() == 0) {
+            //Falls in der Liste noch nichts drin steht, den gefundenen Pfad einfach einfügen
             resultPaths.add(foundPath);
             foundPaths.add(pathAsInt);
-            // Sonst suche die Position an der der Pfad gespeichert werden soll
         } else {
+            // Sonst suche die Position an der der Pfad gespeichert werden soll
             loopCount = resultPaths.size();
             for (int i = 0; i < loopCount; ++i) {
                 indexPath = resultPaths.get(i);
@@ -145,6 +146,7 @@ public class BeeColony {
         }
     }
 
+    //Anzahl der Scouts
     public int getScoutsCounter() {
         return scoutsCounter;
     }

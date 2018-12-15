@@ -23,7 +23,7 @@ public class BCO {
         //Dataset wird als erstes Programmargument übergeben
         //String pathToData = args[0];
 
-        //Dataset vorbereiten
+        //Dataset wird als Dateiname übergeben
         String pathToData = "eil101.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
