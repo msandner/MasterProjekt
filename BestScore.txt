@@ -1,0 +1,7 @@
+Best Score
+
+eil101.tsp (Optimum 629) = 674 (2%)
+eil51.tsp(Optimum 426) = 434 (2%)
+a280.tsp (Optimum 2579) = 3079 (20%)
+berlin52.tsp (Optimum 7542) = 7700 (2%)
+st70.tsp (Optimum 675) = 706 (4%)
