@@ -1,13 +1,13 @@
 import com.hsh.Evaluable;
 import com.hsh.Fitness;
 import com.hsh.parser.Dataset;
-import java.io.IOException;
 import java.util.ArrayList;
 
 
 public class BeeColony {
 
-    private ArrayList<Bee> colony;
+    private ArrayList<Bee> beeColony;
+    private int scoutsCounter = 0;
 
     //Pfade die in die nächste Iteration eingehen, um für die Bienen als favouredPath zu dienen
     private ArrayList<Integer[]> bestPaths;
@@ -22,14 +22,19 @@ public class BeeColony {
     private Fitness fitness;
 
     public BeeColony(int beeCount, Dataset dataset) {
-        colony = new ArrayList<>();
+        beeColony = new ArrayList<>();
         bestPaths = new ArrayList<>();
         foundPaths = new ArrayList<>();
         resultPaths = new ArrayList<>();
         fitness = new Fitness(dataset, false);
-
+        //Bienen hinzufügen
         for (int i = 0; i < beeCount; i++) {
-            colony.add(new Bee(i, this, dataset));
+            beeColony.add(new Bee(i, this, dataset));
+        }
+        //Scouts hinzufügen
+        scoutsCounter = beeCount/10;
+        for (int j = 0; j < scoutsCounter; j++) {
+            beeColony.add(new Scout(j, this, dataset));
         }
     }
 
@@ -63,7 +68,7 @@ public class BeeColony {
         if(resultPaths.size() == 0) {
             resultPaths.add(foundPath);
             foundPaths.add(pathAsInt);
-        // Sonst suche die Position an der der Pfad gespeichert werden soll
+            // Sonst suche die Position an der der Pfad gespeichert werden soll
         } else {
             loopCount = resultPaths.size();
             for (int i = 0; i < loopCount; ++i) {
@@ -97,7 +102,7 @@ public class BeeColony {
             //Setzt das Array aus dem die Bienen der nächsten Iteration ihre favorisierten Pfade beziehen auf die x besten Pfade die gefunden wurden
             clearFoundPaths(listSize);
             setBestPathsToFoundPaths();
-        //Falls in resultPaths nicht so viele Pfade drinstehen, wie angefordert wurde, wird das zurückgegeben was in der Liste drinsteht
+            //Falls in resultPaths nicht so viele Pfade drinstehen, wie angefordert wurde, wird das zurückgegeben was in der Liste drinsteht
         } else {
             ev.addAll(resultPaths);
         }
@@ -124,7 +129,7 @@ public class BeeColony {
     }
 
     public Bee getBee(int index) {
-        return colony.get(index);
+        return beeColony.get(index);
     }
 
     //Gibt die besten Pfade von Index 0 bis Index size zurück
@@ -134,10 +139,13 @@ public class BeeColony {
         //Gebe Teilliste der Größe size zurück
         if (size < bestPaths.size()) {
             return (new ArrayList<>(bestPaths.subList(0, size)));
-        //Sonst gebe das komplette Array zurück
+            //Sonst gebe das komplette Array zurück
         } else {
             return bestPaths;
         }
     }
 
+    public int getScoutsCounter() {
+        return scoutsCounter;
+    }
 }

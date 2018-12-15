@@ -12,8 +12,8 @@ public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
     private double alpha = 1.0;
-    private double beta = 8;
-    private double lambda = 0.7;
+    private double beta = 9.5;
+    private double lambda = 0.75;
 
     private static int cities;
 
@@ -24,31 +24,37 @@ public class BCO {
         //String pathToData = args[0];
 
         //Dataset vorbereiten
-        String pathToData = "eil101.tsp";
+        String pathToData = "eil51.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
         Fitness fitness = new Fitness(dataset);
 
-        //Colony erstellen (Es werden so viele Bienen erstellt, wie es Städte gibt
-        BeeColony colony = new BeeColony(cities, dataset);
-
-        /*
-        //Auskommentieren, wenn die Pfade mit denen die Bienen in der 0.Iteration starten ausgegeben werden sollen
+        //Colony erstellen
+        int beecount = cities;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
-        for (int i = 0; i < cities; i++) {
+        BeeColony colony = new BeeColony(beecount, dataset);
+        beecount += colony.getScoutsCounter();
+
+        //initialer Pfad als 0. Iteration
+        for (int i = 0; i < beecount; i++) {
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
         }
         fitness.evaluate(evaluables);
-        evaluate.clear();
-        */
 
-        for(int j = 0; j < 5; j++) {
-            for (int i = 0; i < cities; i++) {
+        //weitere Iterationen
+        for(int j = 0; j < 15; j++) {
+            for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
-            fitness.evaluate(colony.getResultPathsAsEvaluable(20));
+            Evaluable[] evas = fitness.evaluate(colony.getResultPathsAsEvaluable(30));
+
+            for(Evaluable eva : evas){
+                if(!eva.isValid()) {
+                    System.out.println(eva.getErrorCode());
+                }
+            }
         }
     }
 

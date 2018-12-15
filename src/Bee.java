@@ -5,25 +5,24 @@ import java.util.*;
 
 public class Bee {
 
-    private int ID;
-    private int iteration;
+    public int ID;
+    public int iteration;
+    public final int cities;
+    public BeeColony colony;
+    public Fitness fitness;
+    public Dataset dataset;
+
+    public BCO bco = new BCO();
 
     //favorisierter Pfad
-    private Integer[] favouredPath;
-
-    private final int cities;
-    private BeeColony colony;
-    private Fitness fitness;
-    private Dataset dataset;
-
-    private BCO bco = new BCO();
+    public Integer[] favouredPath;
 
     //Set mit möglichen nächsten Städten A
-    private Integer[] allowedCities;
-    private int leftAllow;
+    public Integer[] allowedCities;
+    public int leftAllow;
 
     //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
-    private Integer[] newPath;
+    public Integer[] newPath;
 
     public Bee(int ID, BeeColony colony, Dataset dataset) {
         this.ID = ID;
@@ -52,12 +51,12 @@ public class Bee {
         performWaggleDance(searchNewPath());
     }
 
-    private void setInitialPath() {
+    public void setInitialPath() {
         favouredPath = initializePath();
     }
 
     //initialer Pfad = zufällige Anordnung der Knoten
-    private Integer[] initializePath() {
+    public Integer[] initializePath() {
         Integer[] pathArray = colony.getDefaultArray().clone();
         Collections.shuffle(Arrays.asList(pathArray));
 
@@ -70,7 +69,7 @@ public class Bee {
     }
 
     //aus ArrayList einen zufälligen Pfad wählen
-    private void observeDance() {
+    public void observeDance() {
         //Holt x besten Pfade aus den gefunden Pfaden
         //Funktioniert, da die Pfade nach ihrer Fitness sortiert sind
         List<Integer[]> possiblePaths = colony.getBestPaths(10);
@@ -80,15 +79,14 @@ public class Bee {
         favouredPath = possiblePaths.get(randValue);
     }
 
-    //Belegt das Array allowedCities mit den IDs von 0 bis cities
-    private void setAllowedCities() {
+    public void setAllowedCities() {
         allowedCities = new Integer[cities];
         allowedCities = colony.getDefaultArray().clone();
         leftAllow = cities;
     }
 
     //Löscht das Objekt mit der ID element aus allowedCities und gibt den Index zurück, an dem das Objekt stand
-    private int removeFromAllowedCities (int element) {
+    public int removeFromAllowedCities (int element) {
         int loopIndex = 0;
         int e;
 
@@ -105,7 +103,7 @@ public class Bee {
     }
 
     //Sucht basierend auf einem favorisiertem Pfad nach einem neuen Pfad
-    private Path searchNewPath() {
+    public Path searchNewPath() {
         int count;
         int index;
         double randomValue;
@@ -169,7 +167,7 @@ public class Bee {
         return (new Path(newPath));
     }
 
-    private double arcfitness(Node cityj, int i) {
+    public double arcfitness(Node cityj, int i) {
         int AunionF = 0;
 
         //testen, ob der nächste Knoten im beobachteten Pfad auch in der Liste der besuchbaren Städte ist
@@ -191,7 +189,7 @@ public class Bee {
     }
 
     //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
-    private double stateTransitionProbability(Node cityi, Node cityj, int i) {
+    public double stateTransitionProbability(Node cityi, Node cityj, int i) {
         double arcfitness = Math.pow(arcfitness(cityj, i), bco.getAlpha());
         double distance = Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
 
@@ -213,7 +211,7 @@ public class Bee {
 
     //true, wenn der neue gefundene Pfad besser ist als der alte
     //Prüft, ob der gefundene Pfad eine bessere Fitness aufweist als der favorisierte Pfad mit dem die Biene begonnen hat
-    private boolean shouldBeeDance() {
+    public boolean shouldBeeDance() {
         int foundProb = fitness.evaluate(new Path(newPath), -1).getFitness();
         int oldProb = fitness.evaluate(new Path(favouredPath), -1).getFitness();
 
@@ -221,7 +219,7 @@ public class Bee {
     }
 
     //Path in ArrayList schreiben
-    private void performWaggleDance(Path foundPath) {
+    public void performWaggleDance(Path foundPath) {
         //Sollte der gefundene Pfad besser sein, als der Pfad mit dem die Biene begonnen hat:
         if (shouldBeeDance()) {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
