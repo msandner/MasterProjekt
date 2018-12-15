@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public class BeeColony {
 
+    //test
     private ArrayList<Bee> beeColony;
     private int scoutsCounter;
 
