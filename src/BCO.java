@@ -24,7 +24,7 @@ public class BCO {
         //String pathToData = args[0];
 
         //Dataset vorbereiten
-        String pathToData = "eil51.tsp";
+        String pathToData = "eil101.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 

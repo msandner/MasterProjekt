@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class BeeColony {
 
     private ArrayList<Bee> beeColony;
-    private int scoutsCounter = 0;
+    private int scoutsCounter;
 
     //Pfade die in die nächste Iteration eingehen, um für die Bienen als favouredPath zu dienen
     private ArrayList<Integer[]> bestPaths;

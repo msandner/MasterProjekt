@@ -5,24 +5,24 @@ import java.util.*;
 
 public class Bee {
 
-    public int ID;
-    public int iteration;
-    public final int cities;
-    public BeeColony colony;
-    public Fitness fitness;
-    public Dataset dataset;
+    private int ID;
+    private int iteration;
+    private final int cities;
+    private BeeColony colony;
+    private Fitness fitness;
+    private Dataset dataset;
 
-    public BCO bco = new BCO();
+    private BCO bco = new BCO();
 
     //favorisierter Pfad
-    public Integer[] favouredPath;
+    private Integer[] favouredPath;
 
     //Set mit möglichen nächsten Städten A
-    public Integer[] allowedCities;
-    public int leftAllow;
+    private Integer[] allowedCities;
+    private int leftAllow;
 
     //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
-    public Integer[] newPath;
+    private Integer[] newPath;
 
     public Bee(int ID, BeeColony colony, Dataset dataset) {
         this.ID = ID;
@@ -51,12 +51,12 @@ public class Bee {
         performWaggleDance(searchNewPath());
     }
 
-    public void setInitialPath() {
+    private void setInitialPath() {
         favouredPath = initializePath();
     }
 
     //initialer Pfad = zufällige Anordnung der Knoten
-    public Integer[] initializePath() {
+    private Integer[] initializePath() {
         Integer[] pathArray = colony.getDefaultArray().clone();
         Collections.shuffle(Arrays.asList(pathArray));
 
@@ -69,7 +69,7 @@ public class Bee {
     }
 
     //aus ArrayList einen zufälligen Pfad wählen
-    public void observeDance() {
+    private void observeDance() {
         //Holt x besten Pfade aus den gefunden Pfaden
         //Funktioniert, da die Pfade nach ihrer Fitness sortiert sind
         List<Integer[]> possiblePaths = colony.getBestPaths(10);
@@ -79,14 +79,14 @@ public class Bee {
         favouredPath = possiblePaths.get(randValue);
     }
 
-    public void setAllowedCities() {
+    private void setAllowedCities() {
         allowedCities = new Integer[cities];
         allowedCities = colony.getDefaultArray().clone();
         leftAllow = cities;
     }
 
     //Löscht das Objekt mit der ID element aus allowedCities und gibt den Index zurück, an dem das Objekt stand
-    public int removeFromAllowedCities (int element) {
+    private int removeFromAllowedCities (int element) {
         int loopIndex = 0;
         int e;
 
@@ -167,7 +167,7 @@ public class Bee {
         return (new Path(newPath));
     }
 
-    public double arcfitness(Node cityj, int i) {
+    private double arcfitness(Node cityj, int i) {
         int AunionF = 0;
 
         //testen, ob der nächste Knoten im beobachteten Pfad auch in der Liste der besuchbaren Städte ist
@@ -189,7 +189,7 @@ public class Bee {
     }
 
     //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
-    public double stateTransitionProbability(Node cityi, Node cityj, int i) {
+    private double stateTransitionProbability(Node cityi, Node cityj, int i) {
         double arcfitness = Math.pow(arcfitness(cityj, i), bco.getAlpha());
         double distance = Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
 
@@ -211,8 +211,8 @@ public class Bee {
 
     //true, wenn der neue gefundene Pfad besser ist als der alte
     //Prüft, ob der gefundene Pfad eine bessere Fitness aufweist als der favorisierte Pfad mit dem die Biene begonnen hat
-    public boolean shouldBeeDance() {
-        int foundProb = fitness.evaluate(new Path(newPath), -1).getFitness();
+    private boolean shouldBeeDance(Path foundPath) {
+        int foundProb = fitness.evaluate(foundPath, -1).getFitness();
         int oldProb = fitness.evaluate(new Path(favouredPath), -1).getFitness();
 
         return (foundProb <= oldProb);
@@ -221,7 +221,7 @@ public class Bee {
     //Path in ArrayList schreiben
     public void performWaggleDance(Path foundPath) {
         //Sollte der gefundene Pfad besser sein, als der Pfad mit dem die Biene begonnen hat:
-        if (shouldBeeDance()) {
+        if (shouldBeeDance(foundPath)) {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
             colony.addPathToResultPaths(foundPath, favouredPath);
