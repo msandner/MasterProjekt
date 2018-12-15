@@ -62,8 +62,6 @@ public class Bee {
 
         //zu BestPath ArrayList hinzufügen, damit die 0te Iteration observeDance verwenden kann
         colony.addArrayToBestPath(pathArray);
-        //zu ResultPaths und NewBestPaths hinzufügen, damit diese ebenfalls evaluiert werden
-        colony.addPathToResultPaths((new Path(pathArray)), pathArray);
 
         return pathArray;
     }
@@ -71,11 +69,12 @@ public class Bee {
     //aus ArrayList einen zufälligen Pfad wählen, der als favouredPath genutzt wird
     private void observeDance() {
         //Holt die x besten Pfade aus den gefundenen Pfaden (sind nach ihrer Fitness sortiert)
-        List<Integer[]> possiblePaths = colony.getBestPaths(10);
+        List<Integer[]> possiblePaths = colony.getXBestPaths(10);
 
         //Wählt einen zufälligen Pfad aus den besten Pfaden aus
-        int randValue = (int)(Math.random() * possiblePaths.size());
+        int randValue = (int) (Math.random() * possiblePaths.size());
         favouredPath = possiblePaths.get(randValue);
+
     }
 
     private void setAllowedCities() {
@@ -109,6 +108,8 @@ public class Bee {
         double randomProb;
         double totalProb;
         double foundProb;
+
+        double bestProb;
 
         ArrayList<Double> probArray = new ArrayList();
         ArrayList<Integer> allowed = new ArrayList(colony.getDefaultArrayList());
@@ -145,17 +146,19 @@ public class Bee {
                     count++;
                 }
             }
-            for (int z=0; z< probArray.size(); ++z) {
-                //Die Wahrscheinlichkeiten zwischen 0 und 1 mappen
-                probArray.set(z, probArray.get(z)/totalProb);
-                //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert übersteigen
-                //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
-                randomProb += probArray.get(z);
-                if(randomProb >= randomValue) {
+
+            for (int z = 0; z < probArray.size(); ++z) {
+                 //Die Wahrscheinlichkeiten zwischen 0 und 1 mappen
+                 probArray.set(z, probArray.get(z) / totalProb);
+                 //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert übersteigen
+                 //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
+                 randomProb += probArray.get(z);
+                 if (randomProb >= randomValue) {
                     index = z;
                     break;
-                }
+                 }
             }
+
             //Fügt den neuen Knoten zum Pfad hinzu
             newPath[i+1] = allowed.get(index);
             //Löscht den besuchten Knoten aus den Listen der noch verfügbaren Städte
@@ -198,12 +201,11 @@ public class Bee {
 
         double result2 = 0.0;
         //Summe der (Distanz * Arcfitness) über alle möglichen Städte, die noch besucht werden können
-        for (int j = 0; j < allowedCities.length; j++) {
-            if (allowedCities[j] != -2 && cityi.getId() != allowedCities[j]) {
-                Node n = dataset.getNodeByID(allowedCities[j]);
-                result2 += arcfitness(n, i) * Math.pow(1.0/cityi.distance(n), bco.getBeta());
+        for (Integer allowedCity : allowedCities) {
+            if (allowedCity != -2 && cityi.getId() != allowedCity) {
+                Node n = dataset.getNodeByID(allowedCity);
+                result2 += Math.pow(arcfitness(n, i), bco.getAlpha()) * Math.pow(1.0 / cityi.distance(n), bco.getBeta());
             }
-
         }
         double endresult = result1 / result2;
 
@@ -221,13 +223,85 @@ public class Bee {
     //Path in ArrayList schreiben, wenn ein besserer gefunden worde
     public void performWaggleDance(Path foundPath) {
         if (shouldBeeDance(foundPath)) {
+
+            //Verbesserung von newPath wenn möglich
+            //oneOpt();
+            twoOpt();
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
+
+            //benötigt, da favouredPath möglicherweise in twoOPt geändert wird und sonst der falsche foundPath eingefügt wird
+            foundPath = new Path(favouredPath);
+
+            fitness.evaluate(foundPath, -1);
             colony.addPathToResultPaths(foundPath, favouredPath);
         }
     }
 
+
+
+    //Kanten (x,y) und (u,v)
+    //wenn Distanz von (x,u)(y,v) besser ist als Original (x,y)(u,v), dann Änderung der Reihenfolge
+    //counter einschalten, wenn Performance zu schlecht ist, damit es nicht zu oft ausgeführt wird
+    public void twoOpt() {
+        int counter = 0;
+        for(int i = 0; i < newPath.length-3; i+=3) {
+
+            Node x = dataset.getNodeByID(newPath[i]);
+            Node y = dataset.getNodeByID(newPath[i+1]);
+            Node u = dataset.getNodeByID(newPath[i+2]);
+            Node v = dataset.getNodeByID(newPath[i+3]);
+
+            int dxyuv = x.distance(y) + u.distance(v);
+            int dxuyv = x.distance(u) + y.distance(v);
+
+            if(dxyuv > dxuyv) {
+                int temp = newPath[i+2];
+                newPath[i+2] = newPath[i+1];
+                newPath[i+1] = temp;
+                //counter++;
+            }
+
+            if (counter > 3) {
+                break;
+            }
+        }
+    }
+
+
     public Integer[] getPath() {
         return favouredPath;
     }
+
+    //einfaches symmetrisches Austauschen von zwei Knoten, um leicht bessere Fitness zu erzielen
+    private void oneOpt() {
+        boolean done = false;
+        for(int i = 0; i < newPath.length/2; i++) {
+            for(int j = newPath.length-1; j > newPath.length/2; j--) {
+                int oldfitness = fitness.evaluate(new Path(newPath), -1).getFitness();
+
+                int a = newPath[i];
+                int b = newPath[j];
+
+                newPath[i] = b;
+                newPath[j] = a;
+
+                int newfitness = fitness.evaluate(new Path(favouredPath), -1).getFitness();
+
+                //wenn keine Verbesserung, dann wieder auf alte Knoten zurücksetzen
+                if(oldfitness < newfitness) {
+                    newPath[i] = a;
+                    newPath[j] = b;
+                } else {
+                    done = true;
+                    break;
+                }
+            }
+            if(done) {
+                break;
+            }
+        }
+    }
+
+
 }

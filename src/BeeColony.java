@@ -6,7 +6,6 @@ import java.util.ArrayList;
 
 public class BeeColony {
 
-    //test
     private ArrayList<Bee> beeColony;
     private int scoutsCounter;
 
@@ -33,7 +32,7 @@ public class BeeColony {
             beeColony.add(new Bee(i, this, dataset));
         }
         //Scouts hinzufügen
-        scoutsCounter = beeCount/10;
+        scoutsCounter = beeCount/2;
         for (int j = 0; j < scoutsCounter; j++) {
             beeColony.add(new Scout(j, this, dataset));
         }
@@ -122,6 +121,10 @@ public class BeeColony {
         }
     }
 
+    public void clearBestPaths() {
+        bestPaths.clear();
+    }
+
     public Integer[] getDefaultArray() {
         return defaultArray;
     }
@@ -136,7 +139,7 @@ public class BeeColony {
 
     //Gibt die besten Pfade von Index 0 bis Index size zurück
     //Funktioniert, da bestPaths nach der Fitness sortiert ist
-    public ArrayList<Integer[]> getBestPaths(int size) {
+    public ArrayList<Integer[]> getXBestPaths(int size) {
         //Falls size kleiner ist, als die Anzahl an Elementen die in bestPaths drin steht:
         //Gebe Teilliste der Größe size zurück
         if (size < bestPaths.size()) {
@@ -151,4 +154,5 @@ public class BeeColony {
     public int getScoutsCounter() {
         return scoutsCounter;
     }
+
 }
