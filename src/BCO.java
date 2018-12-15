@@ -24,38 +24,31 @@ public class BCO {
         //String pathToData = args[0];
 
         //Dataset vorbereiten
-        String pathToData = "a280.tsp";
+        String pathToData = "eil101.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
         Fitness fitness = new Fitness(dataset);
 
-        //Colony erstellen
-        int beecount = 25;
-        ArrayList<Evaluable> evaluables = new ArrayList<>();
-        BeeColony colony = new BeeColony(beecount, dataset);
+        //Colony erstellen (Es werden so viele Bienen erstellt, wie es Städte gibt
+        BeeColony colony = new BeeColony(cities, dataset);
 
-        //initialer Pfad als 0. Iteration
-        for (int i = 0; i < beecount; i++) {
+        /*
+        //Auskommentieren, wenn die Pfade mit denen die Bienen in der 0.Iteration starten ausgegeben werden sollen
+        ArrayList<Evaluable> evaluables = new ArrayList<>();
+        for (int i = 0; i < cities; i++) {
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
         }
         fitness.evaluate(evaluables);
+        evaluate.clear();
+        */
 
-
-        //weitere Iterationen
         for(int j = 0; j < 5; j++) {
-            evaluables.clear();
-            for (int i = 0; i < beecount; i++) {
+            for (int i = 0; i < cities; i++) {
                 colony.getBee(i).mainProcedure();
             }
-            Evaluable[] evas = fitness.evaluate(colony.getResultPathsAsEvaluable(20));
-
-            for(Evaluable eva : evas){
-                if(!eva.isValid()) {
-                    System.out.println(eva.getErrorCode());
-                }
-            }
+            fitness.evaluate(colony.getResultPathsAsEvaluable(20));
         }
     }
 

@@ -11,13 +11,10 @@ public class BeeColony {
 
     //Pfade die in die nächste Iteration eingehen, um für die Bienen als favouredPath zu dienen
     private ArrayList<Integer[]> bestPaths;
-
     //Pfade die von den Bienen gefunden werden
-    private ArrayList<Integer[]> newBestPaths = new ArrayList<>();
-
+    private ArrayList<Integer[]> foundPaths;
     //Pfade die zur Evaluation gegeben werden
-    private ArrayList<Path> resultPaths = new ArrayList<>();
-
+    private ArrayList<Path> resultPaths;
     //default Array mit sortierten IDs der Größe cities
     private Integer[] defaultArray;
     private ArrayList<Integer> defaultArrayList;
@@ -27,89 +24,87 @@ public class BeeColony {
     public BeeColony(int beeCount, Dataset dataset) {
         colony = new ArrayList<>();
         bestPaths = new ArrayList<>();
-        newBestPaths = new ArrayList<>();
+        foundPaths = new ArrayList<>();
+        resultPaths = new ArrayList<>();
         fitness = new Fitness(dataset, false);
+
         for (int i = 0; i < beeCount; i++) {
             colony.add(new Bee(i, this, dataset));
         }
-
     }
 
-    public void clearNewBestPaths(int listSize) {
-        ArrayList<Integer[]> shrinkedList = new ArrayList<>(newBestPaths.subList(0,listSize));
-        newBestPaths = shrinkedList;
+    //Setzt foundPaths auf die x besten Pfade, damit die Liste nicht immer weiter wächst
+    public void clearFoundPaths(int listSize) {
+        ArrayList<Integer[]> shrinkedList = new ArrayList<>(foundPaths.subList(0,listSize));
+        foundPaths.clear();
+        foundPaths = shrinkedList;
     }
 
-    public void setBestPathsToNewBestPaths() {
+    //Setzt das Array aus dem die Bienen der nächsten Iteration ihre favorisierten Pfade beziehen auf die x besten Pfade die gefunden wurden
+    public void setBestPathsToFoundPaths() {
         bestPaths.clear();
-        bestPaths.addAll(newBestPaths);
+        bestPaths.addAll(foundPaths);
     }
 
     public void addArrayToBestPath(Integer[] path) {
         bestPaths.add(path);
     }
 
-    /*
-    public void addArrayToNewBestPaths(Integer[] path) {
-        newBestPaths.add(path);
-    }
-    */
-
     //Fügt den gefundenen Pfad in eine nach der Fitness sortierten Liste ein
     public void addPathToResultPaths (Path foundPath, Integer[] pathAsInt) {
         //Alle neuen Pfade der Bienen in die zu evaluierende Liste schreiben
         //Notwendig, damit Bienen nicht bereits auf die neu gefunden Pfade der vorherigen Bienen der gleichen Iteration zugreifen können
-        //setBestPathsToNewBestPaths();
-        //clearNewBestPaths();
-
         Path indexPath;
+        int loopCount = 0;
 
         //Pfad für spätere Verwendung evaluieren
         fitness.evaluate(foundPath, -1);
-
         //Falls in der Liste noch nichts drin steht, den gefundenen Pfad einfach einfügen
         if(resultPaths.size() == 0) {
             resultPaths.add(foundPath);
-            newBestPaths.add(pathAsInt);
-            // Sonst suche die Position an der der Pfad gespeichert werden soll
+            foundPaths.add(pathAsInt);
+        // Sonst suche die Position an der der Pfad gespeichert werden soll
         } else {
-            int loopCount = resultPaths.size();
+            loopCount = resultPaths.size();
             for (int i = 0; i < loopCount; ++i) {
                 indexPath = resultPaths.get(i);
-
+                //Der gefundene Pfad wird vor den ersten Pfad gespeichert, der eine schlechtere Fitness hat
                 if (foundPath.getFitness() < indexPath.getFitness()) {
                     resultPaths.add(i, foundPath);
-                    newBestPaths.add(i, pathAsInt);
+                    foundPaths.add(i, pathAsInt);
                     break;
                 }
             }
             //Falls der gefundene Pfad schlechter ist als alle anderen gefundenen, füge ihn am Ende der Liste ein
             if(loopCount == resultPaths.size()) {
                 resultPaths.add(foundPath);
-                newBestPaths.add(pathAsInt);
+                foundPaths.add(pathAsInt);
             }
         }
     }
 
+    //Gibt die ersten x Pfade aus resultPaths zurück
     public ArrayList<Evaluable> getResultPathsAsEvaluable(int listSize) {
-
         ArrayList<Evaluable> ev = new ArrayList<>();
 
+        //Wenn weniger Pfade zurückgegeben werden sollen, als in resultPaths drin stehen, werden nur die ersten x (x=listSize) Pfade zurückgegeben
         if(listSize < resultPaths.size()) {
             ArrayList<Path> results = new ArrayList<>(resultPaths.subList(0, listSize));
             ev.addAll(results);
-            resultPaths = results;
-
-            clearNewBestPaths(listSize);
-            setBestPathsToNewBestPaths();
-
+            //Setzt resultPaths aus die Teilliste, damit resultPaths nicht zu groß wird
+            resultPaths.clear();
+            resultPaths.addAll(results);
+            //Setzt das Array aus dem die Bienen der nächsten Iteration ihre favorisierten Pfade beziehen auf die x besten Pfade die gefunden wurden
+            clearFoundPaths(listSize);
+            setBestPathsToFoundPaths();
+        //Falls in resultPaths nicht so viele Pfade drinstehen, wie angefordert wurde, wird das zurückgegeben was in der Liste drinsteht
         } else {
             ev.addAll(resultPaths);
         }
-
         return ev;
     }
 
+    //Erstellt sowohl eine sortierte Liste als auch ein sortiertes Array mit den IDs von 0 bis cities
     public void setDefaultArray(int cities) {
         defaultArray = new Integer[cities];
         defaultArrayList = new ArrayList<>();
@@ -132,9 +127,14 @@ public class BeeColony {
         return colony.get(index);
     }
 
+    //Gibt die besten Pfade von Index 0 bis Index size zurück
+    //Funktioniert, da bestPaths nach der Fitness sortiert ist
     public ArrayList<Integer[]> getBestPaths(int size) {
+        //Falls size kleiner ist, als die Anzahl an Elementen die in bestPaths drin steht:
+        //Gebe Teilliste der Größe size zurück
         if (size < bestPaths.size()) {
             return (new ArrayList<>(bestPaths.subList(0, size)));
+        //Sonst gebe das komplette Array zurück
         } else {
             return bestPaths;
         }

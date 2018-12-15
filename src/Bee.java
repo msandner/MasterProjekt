@@ -36,6 +36,7 @@ public class Bee {
         iteration = 0;
         favouredPath = new Integer[cities];
 
+        //Initialisiert ein Array und eine ArrayList mit IDs von 1 bis 280
         if(colony.getDefaultArray() == null) {
             colony.setDefaultArray(cities);
         }
@@ -60,112 +61,112 @@ public class Bee {
         Integer[] pathArray = colony.getDefaultArray().clone();
         Collections.shuffle(Arrays.asList(pathArray));
 
-        //zu BestPath ArrayList hinzufügen
+        //zu BestPath ArrayList hinzufügen, damit die 0te Iteration observeDance verwenden kann
         colony.addArrayToBestPath(pathArray);
-
-        //zu ResultPaths und NewBestPaths hinzufügen
-        Path initPath = new Path(pathArray);
-        colony.addPathToResultPaths(initPath, pathArray);
+        //zu ResultPaths und NewBestPaths hinzufügen, damit diese ebenfalls evaluiert werden
+        colony.addPathToResultPaths((new Path(pathArray)), pathArray);
 
         return pathArray;
     }
 
     //aus ArrayList einen zufälligen Pfad wählen
     private void observeDance() {
-        //alle Pfade, die beobachtet werden können, aus BestPaths kriegen
+        //Holt x besten Pfade aus den gefunden Pfaden
+        //Funktioniert, da die Pfade nach ihrer Fitness sortiert sind
         List<Integer[]> possiblePaths = colony.getBestPaths(10);
 
+        //Wählt einen zufälligen Wert zwischen 0 und der Anzahl der möglichen Pfade
         int randValue = (int)(Math.random() * possiblePaths.size());
         favouredPath = possiblePaths.get(randValue);
     }
 
+    //Belegt das Array allowedCities mit den IDs von 0 bis cities
     private void setAllowedCities() {
         allowedCities = new Integer[cities];
         allowedCities = colony.getDefaultArray().clone();
         leftAllow = cities;
     }
 
+    //Löscht das Objekt mit der ID element aus allowedCities und gibt den Index zurück, an dem das Objekt stand
+    private int removeFromAllowedCities (int element) {
+        int loopIndex = 0;
+        int e;
+
+        for (int i=0; i < allowedCities.length; ++i) {
+            e = allowedCities[i];
+            if(element == e) {
+                allowedCities[i] = -2;
+                leftAllow--;
+                loopIndex = i;
+                break;
+            }
+        }
+        return loopIndex;
+    }
+
+    //Sucht basierend auf einem favorisiertem Pfad nach einem neuen Pfad
     private Path searchNewPath() {
-        setAllowedCities();
         int count;
-        double rand;
-        double randResult;
         int index;
-
-
-        ArrayList<Integer> allowed = new ArrayList(colony.getDefaultArrayList());
-        ArrayList<Double> randArray = new ArrayList();
-
-        double result = 0.0;
+        double randomValue;
+        double randomProb;
+        double totalProb;
         double foundProb;
+
+        ArrayList<Double> probArray = new ArrayList();
+        ArrayList<Integer> allowed = new ArrayList(colony.getDefaultArrayList());
+
+        //Setzt allowedCities zurück auf den Startzustand (Sortierte Liste der größe cities)
+        setAllowedCities();
 
         //Der Startknoten des neuen Pfades ist auch der Startknoten des gespeicherten Pfades der Biene
         newPath[0] = favouredPath[0];
 
-        //Der Startknoten wird in allowedCities als besucht markiert
-        for (int x = 0; x < allowedCities.length; x++) {
-            if (allowedCities[x] != -2) {
-                int a = allowedCities[x];
-                int b = newPath[0];
-
-                if (a == b) {
-                    allowedCities[x] = -2;
-                    allowed.remove(x);
-                    leftAllow--;
-                    break;
-                }
-            }
-        }
-
+        //Löscht den Startknoten aus den Listen der noch verfügbaren Städte
+        int removeIndex = removeFromAllowedCities(newPath[0]);
+        allowed.remove(removeIndex);
 
         //Fülle den neuen Pfad newPath mit Knoten
         for (int i = 0; i < (allowedCities.length-1); ++i) {
+            probArray.clear();
+            randomValue = Math.random();
+            randomProb = 0.0;
+            index = 0;
+            totalProb = 0.0;
             count = 0;
+
+            //Jeder Knoten wird mit allen noch verfügbaren Knoten verglichen
             for (int j = 0; j < allowedCities.length; ++j) {
+                //Wenn ein Knoten in allowedCities den Wert -2 besitzt, wurde er bereits besucht
                 if (allowedCities[j] != -2) {
+                    //Berechne die Wahrscheinlichkeit für den Knoten j
                     foundProb = stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
-                    randArray.add(foundProb);
-                    result += randArray.get(count);
+                    //Alle Wahrscheinlichkeiten in einer Liste speichern
+                    probArray.add(foundProb);
+                    //Die Wahrscheinlichkeiten aufaddieren
+                    totalProb += probArray.get(count);
                     count++;
                 }
             }
-
-            rand = Math.random();
-            randResult = 0.0;
-            index = 0;
-
-            for (int z=0; z< randArray.size(); ++z) {
-                randArray.set(z, randArray.get(z)/1.0);
-                randResult += randArray.get(z);
-                if(randResult >= rand) {
+            for (int z=0; z< probArray.size(); ++z) {
+                //Die Wahrscheinlichkeiten zwischen 0 und 1 mappen
+                probArray.set(z, probArray.get(z)/totalProb);
+                //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert übersteigen
+                //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
+                randomProb += probArray.get(z);
+                if(randomProb >= randomValue) {
                     index = z;
                     break;
                 }
             }
-
-            result = 0.0;
-            randArray.clear();
-
+            //Fügt den neuen Knoten zum Pfad hinzu
             newPath[i+1] = allowed.get(index);
-
-
-            for (int a=0; a<allowedCities.length; ++a) {
-                int d = allowed.get(index);
-                int e = allowedCities[a];
-                if(d == e) {
-                    allowedCities[a] = -2;
-                    break;
-                }
-            }
-
+            //Löscht den besuchten Knoten aus den Listen der noch verfügbaren Städte
+            removeFromAllowedCities(allowed.get(index));
             allowed.remove(index);
-            leftAllow--;
         }
-
         iteration++;
-
         return (new Path(newPath));
-
     }
 
     private double arcfitness(Node cityj, int i) {
@@ -211,19 +212,19 @@ public class Bee {
     }
 
     //true, wenn der neue gefundene Pfad besser ist als der alte
+    //Prüft, ob der gefundene Pfad eine bessere Fitness aufweist als der favorisierte Pfad mit dem die Biene begonnen hat
     private boolean shouldBeeDance() {
-        Path foundPath = new Path(newPath);
-        Path oldPath = new Path(favouredPath);
+        int foundProb = fitness.evaluate(new Path(newPath), -1).getFitness();
+        int oldProb = fitness.evaluate(new Path(favouredPath), -1).getFitness();
 
-        fitness.evaluate(foundPath, -1);
-        fitness.evaluate(oldPath, -1);
-
-        return (foundPath.getFitness() <= oldPath.getFitness());
+        return (foundProb <= oldProb);
     }
 
     //Path in ArrayList schreiben
     private void performWaggleDance(Path foundPath) {
+        //Sollte der gefundene Pfad besser sein, als der Pfad mit dem die Biene begonnen hat:
         if (shouldBeeDance()) {
+            //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
             colony.addPathToResultPaths(foundPath, favouredPath);
         }
