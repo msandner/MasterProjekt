@@ -51,25 +51,21 @@ public class Bee {
         performWaggleDance(searchNewPath());
     }
 
-    private void setInitialPath() {
-        favouredPath = initializePath();
-    }
-
     //initialer Pfad = zufällige Anordnung der Knoten
-    private Integer[] initializePath() {
+    private void setInitialPath() {
         Integer[] pathArray = colony.getDefaultArray().clone();
         Collections.shuffle(Arrays.asList(pathArray));
 
         //zu BestPath ArrayList hinzufügen, damit die 0te Iteration observeDance verwenden kann
         colony.addArrayToBestPath(pathArray);
 
-        return pathArray;
+        favouredPath = pathArray.clone();
     }
 
     //aus ArrayList einen zufälligen Pfad wählen, der als favouredPath genutzt wird
     private void observeDance() {
         //Holt die x besten Pfade aus den gefundenen Pfaden (sind nach ihrer Fitness sortiert)
-        List<Integer[]> possiblePaths = colony.getXBestPaths(10);
+        List<Integer[]> possiblePaths = colony.getXBestPaths(20);
 
         //Wählt einen zufälligen Pfad aus den besten Pfaden aus
         int randValue = (int) (Math.random() * possiblePaths.size());
@@ -235,13 +231,11 @@ public class Bee {
         }
     }
 
-
-
     //Kanten (x,y) und (u,v)
     //wenn Distanz von (x,u)(y,v) besser ist als Original (x,y)(u,v), dann Änderung der Reihenfolge
-    //counter einschalten, wenn Performance zu schlecht ist, damit es nicht zu oft ausgeführt wird
+    //counter einkommentieren, wenn Performance zu schlecht ist, damit es nicht zu oft ausgeführt wird
     public void twoOpt() {
-        int counter = 0;
+        //int counter = 0;
         for(int i = 0; i < newPath.length-3; i+=3) {
 
             Node x = dataset.getNodeByID(newPath[i]);
@@ -253,16 +247,16 @@ public class Bee {
             int dxuyv = x.distance(u) + y.distance(v);
 
             if(dxyuv > dxuyv) {
-                //System.out.println("Verbesserung");
                 int temp = newPath[i+2];
                 newPath[i+2] = newPath[i+1];
                 newPath[i+1] = temp;
                 //counter++;
             }
 
+            /*
             if (counter > 3) {
                 break;
-            }
+            }*/
         }
     }
 
@@ -271,6 +265,7 @@ public class Bee {
         return favouredPath;
     }
 
+    /*
     //einfaches symmetrisches Austauschen von zwei Knoten, um leicht bessere Fitness zu erzielen
     private void oneOpt() {
         boolean done = false;
@@ -300,6 +295,6 @@ public class Bee {
             }
         }
     }
-
+    */
 
 }
