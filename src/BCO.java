@@ -45,7 +45,7 @@ public class BCO {
         fitness.evaluate(evaluables);
 
         //weitere Iterationen
-        for(int j = 1; j <= 12; j++) {
+        for(int j = 1; j <= 15; j++) {
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }

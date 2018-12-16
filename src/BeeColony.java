@@ -1,6 +1,8 @@
 import com.hsh.Evaluable;
 import com.hsh.Fitness;
 import com.hsh.parser.Dataset;
+import com.hsh.parser.Node;
+
 import java.util.ArrayList;
 
 
@@ -30,11 +32,10 @@ public class BeeColony {
         //Bienen hinzufügen
         for (int i = 0; i < beeCount; i++) {
             beeColony.add(new Bee(i, this, dataset));
-        }
-        //Scouts hinzufügen
-        scoutsCounter = beeCount/4;
-        for (int j = 0; j < scoutsCounter; j++) {
-            beeColony.add(new Scout(j, this, dataset));
+            //Scouts hinzufügen
+            if(i <= (beeCount/2)) {
+                beeColony.add(new Scout(i, this, dataset));
+            }
         }
     }
 
@@ -154,5 +155,10 @@ public class BeeColony {
     public int getScoutsCounter() {
         return scoutsCounter;
     }
+
+    public ArrayList<Path> getResultPaths() {
+        return resultPaths;
+    }
+
 
 }
