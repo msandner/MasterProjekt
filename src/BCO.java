@@ -24,7 +24,7 @@ public class BCO {
         //String pathToData = args[0];
 
         //Dataset wird als Dateiname übergeben
-        String pathToData = "eil101.tsp";
+        String pathToData = "eil51.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
@@ -42,22 +42,17 @@ public class BCO {
             Path a = new Path(colony.getBee(i).getPath());
             evaluables.add(a);
         }
-
         fitness.evaluate(evaluables);
 
         //weitere Iterat;ionen
         for(int j = 1; j <= 10; j++) {
+            //colony.setTimestamp();
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
+            //colony.printTimestamp("iteration "+j);
             fitness.evaluate(colony.getResultPathsAsEvaluable(20));
-
-            /*Evaluable[] evas = fitness.evaluate(colony.getResultPathsAsEvaluable(30));
-            for(Evaluable eva : evas){
-                if(!eva.isValid()) {
-                    System.out.println(eva.getErrorCode());
-                }
-            }*/        }
+         }
     }
 
     public int getCityCount() {

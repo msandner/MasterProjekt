@@ -20,6 +20,7 @@ public class BeeColony {
     private ArrayList<Integer> defaultArrayList;
 
     private Fitness fitness;
+    long timestamp;
 
     public BeeColony(int beeCount, Dataset dataset) {
         beeColony = new ArrayList<>();
@@ -27,14 +28,16 @@ public class BeeColony {
         foundPaths = new ArrayList<>();
         resultPaths = new ArrayList<>();
         fitness = new Fitness(dataset, false);
+        scoutsCounter = beeCount/2;
+        timestamp = -2;
+
         //Bienen hinzufügen
         for (int i = 0; i < beeCount; i++) {
             beeColony.add(new Bee(i, this, dataset));
-        }
-        //Scouts hinzufügen
-        scoutsCounter = beeCount/2;
-        for (int j = 0; j < scoutsCounter; j++) {
-            beeColony.add(new Scout(j, this, dataset));
+            //Scouts hinzufügen
+            if (i <= scoutsCounter) {
+                beeColony.add(new Scout(i, this, dataset));
+            }
         }
     }
 
@@ -153,6 +156,15 @@ public class BeeColony {
     //Anzahl der Scouts
     public int getScoutsCounter() {
         return scoutsCounter;
+    }
+
+    public void setTimestamp () {
+        timestamp = System.currentTimeMillis();
+    }
+
+    public void printTimestamp (String methodName) {
+        long currentTime = System.currentTimeMillis();
+        System.out.println(methodName + ": " + ((currentTime - timestamp)/60000) + " Minuten");
     }
 
 }

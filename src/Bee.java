@@ -47,8 +47,10 @@ public class Bee {
     }
 
     public void mainProcedure() {
+        //colony.setTimestamp();
         observeDance();
         performWaggleDance(searchNewPath());
+        //colony.printTimestamp("mainProcedure");
     }
 
     private void setInitialPath() {
@@ -62,7 +64,6 @@ public class Bee {
 
         //zu BestPath ArrayList hinzufügen, damit die 0te Iteration observeDance verwenden kann
         colony.addArrayToBestPath(pathArray);
-
         return pathArray;
     }
 
@@ -74,7 +75,6 @@ public class Bee {
         //Wählt einen zufälligen Pfad aus den besten Pfaden aus
         int randValue = (int) (Math.random() * possiblePaths.size());
         favouredPath = possiblePaths.get(randValue);
-
     }
 
     private void setAllowedCities() {
@@ -104,17 +104,15 @@ public class Bee {
     public Path searchNewPath() {
         int count;
         int index;
+        int newKnot;
         double randomValue;
-        double randomProb;
         double totalProb;
-        double foundProb;
-
-        double bestProb;
 
         ArrayList<Double> probArray = new ArrayList();
         ArrayList<Integer> allowed = new ArrayList(colony.getDefaultArrayList());
 
         //Setzt allowedCities zurück auf den Startzustand (Sortierte Liste der größe cities)
+        //colony.setTimestamp();
         setAllowedCities();
 
         //Der Startknoten des neuen Pfades ist auch der Startknoten des gespeicherten Pfades der Biene
@@ -128,7 +126,6 @@ public class Bee {
         for (int i = 0; i < (allowedCities.length-1); ++i) {
             probArray.clear();
             randomValue = Math.random();
-            randomProb = 0.0;
             index = 0;
             totalProb = 0.0;
             count = 0;
@@ -137,35 +134,27 @@ public class Bee {
             for (int j = 0; j < allowedCities.length; ++j) {
                 //Wenn ein Knoten in allowedCities den Wert -2 besitzt, wurde er bereits besucht
                 if (allowedCities[j] != -2) {
-                    //Berechne die Wahrscheinlichkeit für den Knoten j
-                    foundProb = stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
-                    //Alle Wahrscheinlichkeiten in einer Liste speichern
-                    probArray.add(foundProb);
                     //Die Wahrscheinlichkeiten aufaddieren
-                    totalProb += probArray.get(count);
+                    //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert erreichen oder übersteigen
+                    //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
+                    totalProb += stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
+                    if(totalProb >= randomValue) {
+                        index = count;
+                        break;
+                    }
                     count++;
                 }
             }
-
-            for (int z = 0; z < probArray.size(); ++z) {
-                 //Die Wahrscheinlichkeiten zwischen 0 und 1 mappen
-                 probArray.set(z, probArray.get(z) / totalProb);
-                 //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert übersteigen
-                 //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
-                 randomProb += probArray.get(z);
-                 if (randomProb >= randomValue) {
-                    index = z;
-                    break;
-                 }
-            }
-
             //Fügt den neuen Knoten zum Pfad hinzu
-            newPath[i+1] = allowed.get(index);
+            newKnot = allowed.get(index);
+            newPath[i+1] = newKnot;
             //Löscht den besuchten Knoten aus den Listen der noch verfügbaren Städte
-            removeFromAllowedCities(allowed.get(index));
+            removeFromAllowedCities(newKnot);
             allowed.remove(index);
         }
+
         iteration++;
+        //colony.printTimestamp("searchNewPath");
         return (new Path(newPath));
     }
 
@@ -235,6 +224,7 @@ public class Bee {
 
             fitness.evaluate(foundPath, -1);
             colony.addPathToResultPaths(foundPath, favouredPath);
+
         }
     }
 
@@ -244,6 +234,8 @@ public class Bee {
     //wenn Distanz von (x,u)(y,v) besser ist als Original (x,y)(u,v), dann Änderung der Reihenfolge
     //counter einschalten, wenn Performance zu schlecht ist, damit es nicht zu oft ausgeführt wird
     public void twoOpt() {
+
+        //colony.setTimestamp();
         int counter = 0;
         for(int i = 0; i < newPath.length-3; i+=3) {
 
@@ -266,8 +258,8 @@ public class Bee {
                 break;
             }
         }
+        //colony.printTimestamp("2Opt");
     }
-
 
     public Integer[] getPath() {
         return favouredPath;
