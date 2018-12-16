@@ -1,7 +1,18 @@
 Best Score
 
-eil101.tsp (Optimum 629) = 674 (2%)
-eil51.tsp(Optimum 426) = 434 (2%)
-a280.tsp (Optimum 2579) = 3079 (20%)
-berlin52.tsp (Optimum 7542) = 7700 (2%)
+eil101.tsp (Optimum 629) = 674 (7%)
+eil51.tsp (Optimum 426) = 434 (1%)
+a280.tsp (Optimum 2579) = 2904 (12%)
+berlin52.tsp (Optimum 7542) = 7574 (0.5%)
 st70.tsp (Optimum 675) = 706 (4%)
+
+
+beta = 10 lambda = 0.75
+
+10 Durchläufe in Testumgebung
+Datensatz		Best	Durschnitt
+berlin52.tsp	7574	8048
+eil101.tsp		684		703
+eil51.tsp		443		457
+st70.tsp		711		733
+a280.tsp		2963	3139

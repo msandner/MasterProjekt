@@ -211,17 +211,14 @@ public class Bee {
 
     //Path in ArrayList schreiben, wenn ein besserer gefunden worde
     public void performWaggleDance(Path foundPath) {
-        if (shouldBeeDance(foundPath)) {
+        //Verbesserung wenn möglich
+        twoOpt();
+        //benötigt, da favouredPath möglicherweise in twoOpt geändert wird und sonst der falsche foundPath eingefügt wird
+        foundPath = new Path(newPath);
 
-            //Verbesserung von newPath wenn möglich
-            //oneOpt();
-            twoOpt();
+        if (shouldBeeDance(foundPath)) {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
-
-            //benötigt, da favouredPath möglicherweise in twoOPt geändert wird und sonst der falsche foundPath eingefügt wird
-            foundPath = new Path(favouredPath);
-
             fitness.evaluate(foundPath, -1);
             colony.addPathToResultPaths(foundPath, favouredPath);
 
@@ -248,6 +245,7 @@ public class Bee {
             int dxuyv = x.distance(u) + y.distance(v);
 
             if(dxyuv > dxuyv) {
+                //System.out.println("Verbesserung");
                 int temp = newPath[i+2];
                 newPath[i+2] = newPath[i+1];
                 newPath[i+1] = temp;
