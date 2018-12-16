@@ -12,8 +12,8 @@ public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
     private double alpha = 1.0;
-    private double beta = 12;
-    private double lambda = 0.7;
+    private double beta = 10;
+    private double lambda = 0.75;
 
     private static int cities;
 
@@ -29,7 +29,6 @@ public class BCO {
         cities = dataset.getSize();
 
         Fitness fitness = new Fitness(dataset);
-        Fitness f2 = new Fitness(dataset, false);
 
         //Colony erstellen
         int beecount = cities;
@@ -45,8 +44,8 @@ public class BCO {
 
         fitness.evaluate(evaluables);
 
-        //weitere Iterat;ionen
-        for(int j = 1; j <= 10; j++) {
+        //weitere Iterationen
+        for(int j = 1; j <= 12; j++) {
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }

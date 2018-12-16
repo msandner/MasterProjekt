@@ -32,7 +32,7 @@ public class BeeColony {
             beeColony.add(new Bee(i, this, dataset));
         }
         //Scouts hinzufügen
-        scoutsCounter = beeCount/2;
+        scoutsCounter = beeCount/4;
         for (int j = 0; j < scoutsCounter; j++) {
             beeColony.add(new Scout(j, this, dataset));
         }

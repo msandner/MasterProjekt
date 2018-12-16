@@ -148,15 +148,15 @@ public class Bee {
             }
 
             for (int z = 0; z < probArray.size(); ++z) {
-                 //Die Wahrscheinlichkeiten zwischen 0 und 1 mappen
-                 probArray.set(z, probArray.get(z) / totalProb);
-                 //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert übersteigen
-                 //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
-                 randomProb += probArray.get(z);
-                 if (randomProb >= randomValue) {
+                //Die Wahrscheinlichkeiten zwischen 0 und 1 mappen
+                probArray.set(z, probArray.get(z) / totalProb);
+                //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert übersteigen
+                //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
+                randomProb += probArray.get(z);
+                if (randomProb >= randomValue) {
                     index = z;
                     break;
-                 }
+                }
             }
 
             //Fügt den neuen Knoten zum Pfad hinzu
@@ -222,17 +222,14 @@ public class Bee {
 
     //Path in ArrayList schreiben, wenn ein besserer gefunden worde
     public void performWaggleDance(Path foundPath) {
-        if (shouldBeeDance(foundPath)) {
+        //Verbesserung wenn möglich
+        twoOpt();
+        //benötigt, da favouredPath möglicherweise in twoOpt geändert wird und sonst der falsche foundPath eingefügt wird
+        foundPath = new Path(newPath);
 
-            //Verbesserung von newPath wenn möglich
-            //oneOpt();
-            twoOpt();
+        if (shouldBeeDance(foundPath)) {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
-
-            //benötigt, da favouredPath möglicherweise in twoOPt geändert wird und sonst der falsche foundPath eingefügt wird
-            foundPath = new Path(favouredPath);
-
             fitness.evaluate(foundPath, -1);
             colony.addPathToResultPaths(foundPath, favouredPath);
         }
@@ -256,6 +253,7 @@ public class Bee {
             int dxuyv = x.distance(u) + y.distance(v);
 
             if(dxyuv > dxuyv) {
+                //System.out.println("Verbesserung");
                 int temp = newPath[i+2];
                 newPath[i+2] = newPath[i+1];
                 newPath[i+1] = temp;
