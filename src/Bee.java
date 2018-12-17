@@ -14,6 +14,8 @@ public class Bee {
 
     private BCO bco = new BCO();
 
+    private double[][] distanceMatrix;
+
     //favorisierter Pfad
     private Integer[] favouredPath;
 
@@ -24,13 +26,15 @@ public class Bee {
     //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
     private Integer[] newPath;
 
-    public Bee(int ID, BeeColony colony, Dataset dataset) {
+    public Bee(int ID, BeeColony colony, Dataset dataset, double[][] distanceMatrix) {
         this.ID = ID;
         this.colony = colony;
 
         this.dataset = dataset;
         fitness = new Fitness(dataset, false);
         cities = dataset.getSize();
+
+        this.distanceMatrix = distanceMatrix;
 
         iteration = 0;
         favouredPath = new Integer[cities];
@@ -70,6 +74,7 @@ public class Bee {
         //Wählt einen zufälligen Pfad aus den besten Pfaden aus
         int randValue = (int) (Math.random() * possiblePaths.size());
         favouredPath = possiblePaths.get(randValue);
+
     }
 
     private void setAllowedCities() {
@@ -132,7 +137,7 @@ public class Bee {
                     //Die Wahrscheinlichkeiten aufaddieren
                     //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert erreichen oder übersteigen
                     //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
-                    totalProb += stateTransitionProbability(dataset.getNodeByID(newPath[i]), dataset.getNodeByID(allowedCities[j]), i+1);
+                    totalProb += stateTransitionProbability(newPath[i], allowedCities[j], i+1);
                     if(totalProb >= randomValue) {
                         index = count;
                         break;
@@ -153,7 +158,7 @@ public class Bee {
         return (new Path(newPath));
     }
 
-    private double arcfitness(Node cityj, int i) {
+    private double arcfitness(int cityjID, int i) {
         int AunionF = 0;
 
         //testen, ob der nächste Knoten im beobachteten Pfad auch in der Liste der besuchbaren Städte ist
@@ -161,7 +166,7 @@ public class Bee {
             AunionF = 1;
         }
 
-        if ((cityj.getId() == favouredPath[i])) {
+        if ((cityjID == favouredPath[i])) {
             //wenn der Knoten, der gerade getestet wird, der selbe ist wie im favouredPath, dann Lambda zurückgeben
             return bco.getLambda();
         } else if (leftAllow > 1) {
@@ -177,18 +182,17 @@ public class Bee {
 
     //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
     //i = Position an der wird gerade stehen
-    private double stateTransitionProbability(Node cityi, Node cityj, int i) {
-        double arcfitness = Math.pow(arcfitness(cityj, i), bco.getAlpha());
-        double distance = Math.pow(1.0/cityi.distance(cityj), bco.getBeta());
+    private double stateTransitionProbability(int cityiID, int cityjID, int i) {
+        double arcfitness = Math.pow(arcfitness(cityjID, i), bco.getAlpha());
+        double distance = Math.pow(1.0/(distanceMatrix[cityiID][cityjID]), bco.getBeta());
 
         double result1 = arcfitness * distance;
 
         double result2 = 0.0;
         //Summe der (Distanz * Arcfitness) über alle möglichen Städte, die noch besucht werden können
         for (Integer allowedCity : allowedCities) {
-            if (allowedCity != -2 && cityi.getId() != allowedCity) {
-                Node n = dataset.getNodeByID(allowedCity);
-                result2 += Math.pow(arcfitness(n, i), bco.getAlpha()) * Math.pow(1.0 / cityi.distance(n), bco.getBeta());
+            if (allowedCity != -2 && cityiID != allowedCity) {
+                result2 += Math.pow(arcfitness(allowedCity, i), bco.getAlpha()) * Math.pow(1.0 /(distanceMatrix[cityiID][allowedCity]), bco.getBeta());
             }
         }
         double endresult = result1 / result2;
@@ -215,41 +219,25 @@ public class Bee {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
             fitness.evaluate(foundPath, -1);
-            if(!colony.getResultPaths().contains(foundPath)) {
-                colony.addPathToResultPaths(foundPath, favouredPath);
-            }
+            colony.addPathToResultPaths(foundPath, favouredPath);
         }
     }
 
     //Kanten (x,y) und (u,v)
     //wenn Distanz von (x,u)(y,v) besser ist als Original (x,y)(u,v), dann Änderung der Reihenfolge
-    //counter einkommentieren, wenn Performance zu schlecht ist, damit es nicht zu oft ausgeführt wird
     public void twoOpt() {
-        //int counter = 0;
         for(int i = 0; i < newPath.length-3; i+=3) {
-
-            Node x = dataset.getNodeByID(newPath[i]);
-            Node y = dataset.getNodeByID(newPath[i+1]);
-            Node u = dataset.getNodeByID(newPath[i+2]);
-            Node v = dataset.getNodeByID(newPath[i+3]);
-
-            int dxyuv = x.distance(y) + u.distance(v);
-            int dxuyv = x.distance(u) + y.distance(v);
+            double dxyuv = distanceMatrix[newPath[i]][newPath[i+1]] + distanceMatrix[newPath[i+2]][newPath[i+3]];
+            double dxuyv = distanceMatrix[newPath[i]][newPath[i+2]] + distanceMatrix[newPath[i+1]][newPath[i+3]];
 
             if(dxyuv > dxuyv) {
-                //System.out.println("Verbesserung");
                 int temp = newPath[i+2];
                 newPath[i+2] = newPath[i+1];
                 newPath[i+1] = temp;
-                //counter++;
             }
-
-            /*
-            if (counter > 3) {
-                break;
-            }*/
         }
     }
+
 
     public Integer[] getPath() {
         return favouredPath;

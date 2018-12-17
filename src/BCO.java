@@ -12,8 +12,8 @@ public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
     private double alpha = 1.0;
-    private double beta = 10;
-    private double lambda = 0.75;
+    private static double beta = 15;
+    private static double lambda = 0.75;
 
     private static int cities;
 
@@ -42,14 +42,31 @@ public class BCO {
             evaluables.add(a);
         }
 
-        fitness.evaluate(evaluables);
+
+        Evaluable[] last = fitness.evaluate(evaluables);
+
+        int c = 0;
 
         //weitere Iterationen
-        for(int j = 1; j <= 15; j++) {
+        for(int j = 0; j < 15; j++) {
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
-            fitness.evaluate(colony.getResultPathsAsEvaluable(20));
+
+            Evaluable[] next = fitness.evaluate(colony.getResultPathsAsEvaluable(20));
+
+            if (last[0].getFitness() == next[0].getFitness()) {
+                c++;
+            }
+
+            if(c < 2) {
+                setLambda(0.75);
+            } else {
+               setLambda(0.2);
+               c = 0;
+            }
+
+            last = next;
 
             /*Evaluable[] evas = fitness.evaluate(colony.getResultPathsAsEvaluable(30));
             for(Evaluable eva : evas){
@@ -71,8 +88,16 @@ public class BCO {
         return beta;
     }
 
+    public static void setBeta(double n) {
+        beta = n;
+    }
+
     public double getLambda() {
         return lambda;
+    }
+
+    public static void setLambda(double n) {
+        lambda = n;
     }
 
 }

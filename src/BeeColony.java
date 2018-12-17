@@ -23,20 +23,33 @@ public class BeeColony {
 
     private Fitness fitness;
 
+    private double[][] distanceMatrix;
+
     public BeeColony(int beeCount, Dataset dataset) {
         beeColony = new ArrayList<>();
         bestPaths = new ArrayList<>();
         foundPaths = new ArrayList<>();
         resultPaths = new ArrayList<>();
         fitness = new Fitness(dataset, false);
+        distanceMatrix = createDistanceMatrix(dataset);
         //Bienen hinzufügen
         for (int i = 0; i < beeCount; i++) {
-            beeColony.add(new Bee(i, this, dataset));
+            beeColony.add(new Bee(i, this, dataset, distanceMatrix));
             //Scouts hinzufügen
             if(i <= (beeCount/2)) {
-                beeColony.add(new Scout(i, this, dataset));
+                beeColony.add(new Scout(i, this, dataset, distanceMatrix));
             }
         }
+    }
+
+    private double[][] createDistanceMatrix(Dataset dataset) {
+        double[][] distanceMatrix = new double[dataset.getSize()+1][dataset.getSize()+1];
+        for(int i = 1; i <= dataset.getSize(); i++) {
+            for(int j = 1; j <= dataset.getSize(); j++) {
+                distanceMatrix[i][j] = dataset.getNodeByID(i).distance(dataset.getNodeByID(j));
+            }
+        }
+        return distanceMatrix;
     }
 
     //Setzt foundPaths auf die x besten Pfade, damit die Liste nicht immer weiter wächst
@@ -155,10 +168,5 @@ public class BeeColony {
     public int getScoutsCounter() {
         return scoutsCounter;
     }
-
-    public ArrayList<Path> getResultPaths() {
-        return resultPaths;
-    }
-
 
 }
