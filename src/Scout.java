@@ -10,8 +10,8 @@ public class Scout extends Bee {
     private Integer[] favouredPath;
 
     //ID so gesetzt, dass sie nach den "normalen" Bienen anfangen
-    public Scout(int ID, BeeColony colony, Dataset dataset) {
-        super(ID, colony, dataset);
+    public Scout(int ID, BeeColony colony, Dataset dataset, double[][] distance) {
+        super(ID, colony, dataset, distance);
         this.ID = ID + dataset.getSize();
         this.colony = colony;
         this.favouredPath = super.getPath();
