@@ -4,11 +4,9 @@ import com.hsh.parser.Dataset;
 import java.util.ArrayList;
 
 
-public class BeeColony {
+class BeeColony {
 
     private ArrayList<Bee> beeColony;
-    private int scoutsCounter;
-
     //Pfade die in die nächste Iteration eingehen, um für die Bienen als favouredPath zu dienen
     private ArrayList<Integer[]> bestPaths;
     //Pfade die von den Bienen gefunden werden
@@ -21,23 +19,20 @@ public class BeeColony {
 
     private Fitness fitness;
 
-    private double[][] distanceMatrix;
-
-    public BeeColony(int beeCount, Dataset dataset) {
+    BeeColony(int beeCount, Dataset dataset) {
         beeColony = new ArrayList<>();
         bestPaths = new ArrayList<>();
         foundPaths = new ArrayList<>();
         resultPaths = new ArrayList<>();
         fitness = new Fitness(dataset, false);
-        distanceMatrix = createDistanceMatrix(dataset);
-        //Bienen hinzufügen
+        double[][] distanceMatrix = createDistanceMatrix(dataset);
+        //Bienen und Scouts hinzufügen
         for (int i = 0; i < beeCount; i++) {
             beeColony.add(new Bee(i, this, dataset, distanceMatrix));
-        }
-        //Scouts hinzufügen
-        scoutsCounter = beeCount/2;
-        for (int j = 0; j < scoutsCounter; j++) {
-            beeColony.add(new Scout(j, this, dataset, distanceMatrix));
+            //Scouts hinzufügen
+            if(i <= (beeCount/2)) {
+                beeColony.add(new Scout(i, this, dataset, distanceMatrix));
+            }
         }
     }
 
@@ -64,12 +59,12 @@ public class BeeColony {
         bestPaths.addAll(foundPaths);
     }
 
-    public void addArrayToBestPath(Integer[] path) {
+    void addArrayToBestPath(Integer[] path) {
         bestPaths.add(path);
     }
 
     //Fügt den gefundenen Pfad in eine nach der Fitness sortierten Liste ein
-    public void addPathToResultPaths (Path foundPath, Integer[] pathAsInt) {
+    void addPathToResultPaths(Path foundPath, Integer[] pathAsInt) {
         //Alle neuen Pfade der Bienen in die zu evaluierende Liste schreiben
         //Notwendig, damit Bienen nicht bereits auf die neu gefunden Pfade der vorherigen Bienen der gleichen Iteration zugreifen können
         Path indexPath;
@@ -103,7 +98,7 @@ public class BeeColony {
     }
 
     //Gibt die ersten x Pfade aus resultPaths zurück
-    public ArrayList<Evaluable> getResultPathsAsEvaluable(int listSize) {
+    ArrayList<Evaluable> getResultPathsAsEvaluable(int listSize) {
         ArrayList<Evaluable> ev = new ArrayList<>();
 
         //Wenn weniger Pfade zurückgegeben werden sollen, als in resultPaths drin stehen, werden nur die ersten x (x=listSize) Pfade zurückgegeben
@@ -124,7 +119,7 @@ public class BeeColony {
     }
 
     //Erstellt sowohl eine sortierte Liste als auch ein sortiertes Array mit den IDs von 0 bis cities
-    public void setDefaultArray(int cities) {
+    void setDefaultArray(int cities) {
         defaultArray = new Integer[cities];
         defaultArrayList = new ArrayList<>();
 
@@ -134,25 +129,9 @@ public class BeeColony {
         }
     }
 
-    public void clearBestPaths() {
-        bestPaths.clear();
-    }
-
-    public Integer[] getDefaultArray() {
-        return defaultArray;
-    }
-
-    public ArrayList<Integer> getDefaultArrayList() {
-        return defaultArrayList;
-    }
-
-    public Bee getBee(int index) {
-        return beeColony.get(index);
-    }
-
     //Gibt die besten Pfade von Index 0 bis Index size zurück
     //Funktioniert, da bestPaths nach der Fitness sortiert ist
-    public ArrayList<Integer[]> getXBestPaths(int size) {
+    ArrayList<Integer[]> getXBestPaths(int size) {
         //Falls size kleiner ist, als die Anzahl an Elementen die in bestPaths drin steht:
         //Gebe Teilliste der Größe size zurück
         if (size < bestPaths.size()) {
@@ -163,9 +142,18 @@ public class BeeColony {
         }
     }
 
-    //Anzahl der Scouts
-    public int getScoutsCounter() {
-        return scoutsCounter;
+    Integer[] getDefaultArray() {
+        return defaultArray;
     }
+
+    ArrayList<Integer> getDefaultArrayList() {
+        return defaultArrayList;
+    }
+
+    Bee getBee(int index) {
+        return beeColony.get(index);
+    }
+
+
 
 }
