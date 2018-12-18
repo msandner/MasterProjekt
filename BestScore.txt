@@ -16,3 +16,12 @@ eil101.tsp		684		703
 eil51.tsp		443		457
 st70.tsp		711		733
 a280.tsp		2963	3139
+
+Update 18.12.
+20 Durchläufe
+Datensatz		Best	Durschnitt
+berlin52.tsp    7620    7954
+eil101.tsp      677     701
+eil51.tsp       439     455
+st70.tsp        708     726
+a280.tsp

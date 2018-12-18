@@ -18,7 +18,7 @@ public class Scout extends Bee {
         this.favouredPath = super.getPath();
     }
 
-    //kein observeDance, dafür wird der favouredPath immer wieder auf einen neuen Zufallspfad gesetzt
+    //kein observeDance, dafür wird der favouredPath am Ende immer wieder auf einen neuen Zufallspfad gesetzt
     @Override public void mainProcedure() {
         searchNewPath();
         performWaggleDance();

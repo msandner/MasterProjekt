@@ -73,7 +73,6 @@ public class Bee {
         //Wählt einen zufälligen Pfad aus den besten Pfaden aus
         int randValue = (int) (Math.random() * possiblePaths.size());
         favouredPath = possiblePaths.get(randValue);
-
     }
 
     private void setAllowedCities() {
@@ -148,7 +147,6 @@ public class Bee {
             removeFromAllowedCities(newNode);
             allowed.remove(index);
         }
-
         iteration++;
     }
 
@@ -210,7 +208,7 @@ public class Bee {
         if (shouldBeeDance(foundPath)) {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
-
+            //Prüfen, ob der Pfad schon in ResultPaths/foundPaths enthalten ist, da er dann nicht reingeschrieben werden soll
             if(!colony.getResultPaths().contains(foundPath)) {
                 colony.addPathToResultPaths(foundPath, favouredPath);
             }

@@ -8,9 +8,9 @@ import java.util.*;
 public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
-    private static double alpha = 1.0;
+    private double alpha = 1.0;
     private double beta = 8;
-    private static double lambda = 0.75;
+    private double lambda = 0.75;
 
     private static int cities;
 
@@ -18,10 +18,10 @@ public class BCO {
 
     public static void main(String[] args) throws IOException {
         //Dataset wird als erstes Programmargument übergeben
-        //String pathToData = args[0];
+        String pathToData = args[0];
 
         //Dataset wird als Dateiname übergeben
-        String pathToData = "eil51.tsp";
+        //String pathToData = "eil51.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
@@ -40,33 +40,15 @@ public class BCO {
             evaluables.add(a);
         }
 
-        Evaluable[] last = fitness.evaluate(evaluables);
-        int c = 0;
+        fitness.evaluate(evaluables);
 
         //weitere Iterationen
         for(int j = 0; j < 30; j++) {
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
-            Evaluable[] next = fitness.evaluate(colony.getResultPathsAsEvaluable(20));
-
-            /*
-            //automatische Parameteranpassung bei Stagnation (und zurücksetzen am Ende der nächsten Iteration)
-            if (last[0].getFitness() == next[0].getFitness()) {
-                c++;
-            }
-            //wenn 2x derselbe Pfad als bester Pfad evaluiert wurde
-            if(c < 2) {
-                setAlpha(1);
-            } else {
-                setAlpha(0);
-            }
-            last = next;*/
+            fitness.evaluate(colony.getResultPathsAsEvaluable(10));
         }
-    }
-
-    int getCityCount() {
-        return cities;
     }
 
     double getAlpha() {
@@ -79,14 +61,6 @@ public class BCO {
 
     double getLambda() {
         return lambda;
-    }
-
-    private static void setLambda(double n) {
-        lambda = n;
-    }
-
-    private static void setAlpha(double n) {
-        alpha = n;
     }
 
 }
