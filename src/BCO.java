@@ -1,10 +1,7 @@
 import com.hsh.Evaluable;
 import com.hsh.Fitness;
 import com.hsh.parser.Dataset;
-import com.hsh.parser.Node;
 import com.hsh.parser.Parser;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -12,7 +9,7 @@ public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
     private double alpha = 1.0;
-    private static double beta = 15;
+    private double beta = 10;
     private static double lambda = 0.75;
 
     private static int cities;
@@ -24,7 +21,7 @@ public class BCO {
         //String pathToData = args[0];
 
         //Dataset wird als Dateiname übergeben
-        String pathToData = "eil101.tsp";
+        String pathToData = "eil51.tsp";
         dataset = Parser.read(pathToData);
         cities = dataset.getSize();
 
@@ -34,7 +31,8 @@ public class BCO {
         int beecount = cities;
         ArrayList<Evaluable> evaluables = new ArrayList<>();
         BeeColony colony = new BeeColony(beecount, dataset);
-        beecount += colony.getScoutsCounter();
+        //Hinzufügen der Scoutanzahl
+        beecount += cities/2;
 
         //initialer Pfad als 0. Iteration
         for (int i = 0; i < beecount; i++) {
@@ -42,9 +40,7 @@ public class BCO {
             evaluables.add(a);
         }
 
-
         Evaluable[] last = fitness.evaluate(evaluables);
-
         int c = 0;
 
         //weitere Iterationen
@@ -52,51 +48,40 @@ public class BCO {
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
-
             Evaluable[] next = fitness.evaluate(colony.getResultPathsAsEvaluable(20));
 
+            //automatische Parameteranpassung bei Stagnation (und zurücksetzen am Ende der nächsten Iteration)
             if (last[0].getFitness() == next[0].getFitness()) {
                 c++;
             }
-
+            //wenn 2x derselbe Pfad als bester Pfad evaluiert wurde
             if(c < 2) {
                 setLambda(0.75);
             } else {
                setLambda(0.2);
                c = 0;
             }
-
             last = next;
-
-            /*Evaluable[] evas = fitness.evaluate(colony.getResultPathsAsEvaluable(30));
-            for(Evaluable eva : evas){
-                if(!eva.isValid()) {
-                    System.out.println(eva.getErrorCode());
-                }
-            }*/        }
+        }
     }
 
-    public int getCityCount() {
+    int getCityCount() {
         return cities;
     }
 
-    public double getAlpha() {
+    double getAlpha() {
         return alpha;
     }
 
-    public double getBeta() {
+    double getBeta() {
         return beta;
     }
 
-    public static void setBeta(double n) {
-        beta = n;
-    }
-
-    public double getLambda() {
+    double getLambda() {
         return lambda;
     }
 
-    public static void setLambda(double n) {
+    private static void setLambda(double n) {
         lambda = n;
     }
 

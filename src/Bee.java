@@ -1,16 +1,16 @@
 import com.hsh.Fitness;
 import com.hsh.parser.Dataset;
-import com.hsh.parser.Node;
 import java.util.*;
 
 public class Bee {
 
+    //für Debugging und Testen notwendig
     private int ID;
     private int iteration;
+
     private final int cities;
     private BeeColony colony;
     private Fitness fitness;
-    private Dataset dataset;
 
     private BCO bco = new BCO();
 
@@ -26,11 +26,9 @@ public class Bee {
     //Pfad mit bereits besuchten Städten -> am Ende der neue gefundene Pfad
     private Integer[] newPath;
 
-    public Bee(int ID, BeeColony colony, Dataset dataset, double[][] distanceMatrix) {
+    Bee(int ID, BeeColony colony, Dataset dataset, double[][] distanceMatrix) {
         this.ID = ID;
         this.colony = colony;
-
-        this.dataset = dataset;
         fitness = new Fitness(dataset, false);
         cities = dataset.getSize();
 
@@ -52,7 +50,8 @@ public class Bee {
 
     public void mainProcedure() {
         observeDance();
-        performWaggleDance(searchNewPath());
+        searchNewPath();
+        performWaggleDance();
     }
 
     //initialer Pfad = zufällige Anordnung der Knoten
@@ -69,7 +68,7 @@ public class Bee {
     //aus ArrayList einen zufälligen Pfad wählen, der als favouredPath genutzt wird
     private void observeDance() {
         //Holt die x besten Pfade aus den gefundenen Pfaden (sind nach ihrer Fitness sortiert)
-        List<Integer[]> possiblePaths = colony.getXBestPaths(20);
+        List<Integer[]> possiblePaths = colony.getXBestPaths(15);
 
         //Wählt einen zufälligen Pfad aus den besten Pfaden aus
         int randValue = (int) (Math.random() * possiblePaths.size());
@@ -88,7 +87,7 @@ public class Bee {
         int loopIndex = 0;
         int e;
 
-        for (int i=0; i < allowedCities.length; ++i) {
+        for (int i=0; i < allowedCities.length; i++) {
             e = allowedCities[i];
             if(element == e) {
                 allowedCities[i] = -2;
@@ -101,18 +100,16 @@ public class Bee {
     }
 
     //Sucht basierend auf einem favorisiertem Pfad nach einem neuen Pfad
-    public Path searchNewPath() {
+    void searchNewPath() {
         int count;
         int index;
-        int newKnot;
+        int newNode;
         double randomValue;
         double totalProb;
 
-        ArrayList<Double> probArray = new ArrayList();
         ArrayList<Integer> allowed = new ArrayList(colony.getDefaultArrayList());
 
         //Setzt allowedCities zurück auf den Startzustand (Sortierte Liste der größe cities)
-        //colony.setTimestamp();
         setAllowedCities();
 
         //Der Startknoten des neuen Pfades ist auch der Startknoten des gespeicherten Pfades der Biene
@@ -124,21 +121,20 @@ public class Bee {
 
         //Fülle den neuen Pfad newPath mit Knoten
         for (int i = 0; i < (allowedCities.length-1); ++i) {
-            probArray.clear();
             randomValue = Math.random();
             index = 0;
             totalProb = 0.0;
             count = 0;
 
             //Jeder Knoten wird mit allen noch verfügbaren Knoten verglichen
-            for (int j = 0; j < allowedCities.length; ++j) {
+            for (Integer allowedCity : allowedCities) {
                 //Wenn ein Knoten in allowedCities den Wert -2 besitzt, wurde er bereits besucht
-                if (allowedCities[j] != -2) {
+                if (allowedCity != -2) {
                     //Die Wahrscheinlichkeiten aufaddieren
                     //Die resultierenden Wahrscheinlichkeiten so lange aufaddieren bis sie den zufällig gewählten Wert erreichen oder übersteigen
                     //Dies stellt die Zufälligkeit sicher, mit denen die Bienen ihre Pfade auswählen
-                    totalProb += stateTransitionProbability(newPath[i], allowedCities[j], i+1);
-                    if(totalProb >= randomValue) {
+                    totalProb += stateTransitionProbability(newPath[i], allowedCity, i + 1);
+                    if (totalProb >= randomValue) {
                         index = count;
                         break;
                     }
@@ -146,21 +142,18 @@ public class Bee {
                 }
             }
             //Fügt den neuen Knoten zum Pfad hinzu
-            newKnot = allowed.get(index);
-            newPath[i+1] = newKnot;
+            newNode = allowed.get(index);
+            newPath[i+1] = newNode;
             //Löscht den besuchten Knoten aus den Listen der noch verfügbaren Städte
-            removeFromAllowedCities(newKnot);
+            removeFromAllowedCities(newNode);
             allowed.remove(index);
         }
 
         iteration++;
-        //colony.printTimestamp("searchNewPath");
-        return (new Path(newPath));
     }
 
     private double arcfitness(int cityjID, int i) {
         int AunionF = 0;
-
         //testen, ob der nächste Knoten im beobachteten Pfad auch in der Liste der besuchbaren Städte ist
         if(Arrays.asList(allowedCities).contains(favouredPath[i])) {
             AunionF = 1;
@@ -180,8 +173,9 @@ public class Bee {
         }
     }
 
-    //cityi = aktuelle Stadt, cityj = Stadt mit der verglichen werden soll
-    //i = Position an der wird gerade stehen
+    //cityi = aktuelle Stadt
+    //cityj = Stadt mit der verglichen werden soll
+    //i = Position an der die Biene gerade steht
     private double stateTransitionProbability(int cityiID, int cityjID, int i) {
         double arcfitness = Math.pow(arcfitness(cityjID, i), bco.getAlpha());
         double distance = Math.pow(1.0/(distanceMatrix[cityiID][cityjID]), bco.getBeta());
@@ -195,9 +189,8 @@ public class Bee {
                 result2 += Math.pow(arcfitness(allowedCity, i), bco.getAlpha()) * Math.pow(1.0 /(distanceMatrix[cityiID][allowedCity]), bco.getBeta());
             }
         }
-        double endresult = result1 / result2;
 
-        return endresult;
+        return result1 / result2;
     }
 
     //gibt true zurück, wenn der gefundene Pfad eine bessere Fitness aufweist als der favorisierte Pfad mit dem die Biene begonnen hat
@@ -209,11 +202,11 @@ public class Bee {
     }
 
     //Path in ArrayList schreiben, wenn ein besserer gefunden worde
-    public void performWaggleDance(Path foundPath) {
+    void performWaggleDance() {
         //Verbesserung wenn möglich
         twoOpt();
         //benötigt, da favouredPath möglicherweise in twoOpt geändert wird und sonst der falsche foundPath eingefügt wird
-        foundPath = new Path(newPath);
+        Path foundPath = new Path(newPath);
 
         if (shouldBeeDance(foundPath)) {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
@@ -225,12 +218,12 @@ public class Bee {
 
     //Kanten (x,y) und (u,v)
     //wenn Distanz von (x,u)(y,v) besser ist als Original (x,y)(u,v), dann Änderung der Reihenfolge
-    public void twoOpt() {
+    private void twoOpt() {
         for(int i = 0; i < newPath.length-3; i+=3) {
-            double dxyuv = distanceMatrix[newPath[i]][newPath[i+1]] + distanceMatrix[newPath[i+2]][newPath[i+3]];
-            double dxuyv = distanceMatrix[newPath[i]][newPath[i+2]] + distanceMatrix[newPath[i+1]][newPath[i+3]];
+            double xyuv = distanceMatrix[newPath[i]][newPath[i+1]] + distanceMatrix[newPath[i+2]][newPath[i+3]];
+            double xuyv = distanceMatrix[newPath[i]][newPath[i+2]] + distanceMatrix[newPath[i+1]][newPath[i+3]];
 
-            if(dxyuv > dxuyv) {
+            if(xyuv > xuyv) {
                 int temp = newPath[i+2];
                 newPath[i+2] = newPath[i+1];
                 newPath[i+1] = temp;
@@ -238,41 +231,8 @@ public class Bee {
         }
     }
 
-
-    public Integer[] getPath() {
+    Integer[] getPath() {
         return favouredPath;
     }
-
-    /*
-    //einfaches symmetrisches Austauschen von zwei Knoten, um leicht bessere Fitness zu erzielen
-    private void oneOpt() {
-        boolean done = false;
-        for(int i = 0; i < newPath.length/2; i++) {
-            for(int j = newPath.length-1; j > newPath.length/2; j--) {
-                int oldfitness = fitness.evaluate(new Path(newPath), -1).getFitness();
-
-                int a = newPath[i];
-                int b = newPath[j];
-
-                newPath[i] = b;
-                newPath[j] = a;
-
-                int newfitness = fitness.evaluate(new Path(favouredPath), -1).getFitness();
-
-                //wenn keine Verbesserung, dann wieder auf alte Knoten zurücksetzen
-                if(oldfitness < newfitness) {
-                    newPath[i] = a;
-                    newPath[j] = b;
-                } else {
-                    done = true;
-                    break;
-                }
-            }
-            if(done) {
-                break;
-            }
-        }
-    }
-    */
 
 }
