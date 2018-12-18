@@ -9,7 +9,7 @@ public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
     private double alpha = 1.0;
-    private double beta = 8;
+    private double beta = 10;
     private double lambda = 0.75;
 
     private static int cities;
