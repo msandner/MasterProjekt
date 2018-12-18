@@ -47,7 +47,7 @@ class BeeColony {
     }
 
     //Setzt foundPaths auf die x besten Pfade, damit die Liste nicht immer weiter wächst
-    private void clearFoundPaths(int listSize) {
+    private void shrinkFoundPaths(int listSize) {
         ArrayList<Integer[]> shrinkedList = new ArrayList<>(foundPaths.subList(0,listSize));
         foundPaths.clear();
         foundPaths = shrinkedList;
@@ -109,11 +109,12 @@ class BeeColony {
             resultPaths.clear();
             resultPaths.addAll(results);
             //Setzt das Array aus dem die Bienen der nächsten Iteration ihre favorisierten Pfade beziehen auf die x besten Pfade die gefunden wurden
-            clearFoundPaths(listSize);
+            shrinkFoundPaths(listSize);
             setBestPathsToFoundPaths();
-            //Falls in resultPaths nicht so viele Pfade drinstehen, wie angefordert wurde, wird das zurückgegeben was in der Liste drinsteht
         } else {
+            //Falls in resultPaths nicht so viele Pfade drinstehen, wie angefordert wurde, wird das zurückgegeben was in der Liste drinsteht
             ev.addAll(resultPaths);
+            setBestPathsToFoundPaths();
         }
         return ev;
     }
@@ -152,6 +153,10 @@ class BeeColony {
 
     Bee getBee(int index) {
         return beeColony.get(index);
+    }
+
+    ArrayList<Path> getResultPaths() {
+        return  resultPaths;
     }
 
 

@@ -8,8 +8,8 @@ import java.util.*;
 public class BCO {
 
     //Parameter von Wong, eigentlich alpha = 1.0, beta = 10.0, lambda = 0.99
-    private double alpha = 1.0;
-    private double beta = 10;
+    private static double alpha = 1.0;
+    private double beta = 8;
     private static double lambda = 0.75;
 
     private static int cities;
@@ -44,24 +44,24 @@ public class BCO {
         int c = 0;
 
         //weitere Iterationen
-        for(int j = 0; j < 15; j++) {
+        for(int j = 0; j < 30; j++) {
             for (int i = 0; i < beecount; i++) {
                 colony.getBee(i).mainProcedure();
             }
             Evaluable[] next = fitness.evaluate(colony.getResultPathsAsEvaluable(20));
 
+            /*
             //automatische Parameteranpassung bei Stagnation (und zurücksetzen am Ende der nächsten Iteration)
             if (last[0].getFitness() == next[0].getFitness()) {
                 c++;
             }
             //wenn 2x derselbe Pfad als bester Pfad evaluiert wurde
             if(c < 2) {
-                setLambda(0.75);
+                setAlpha(1);
             } else {
-               setLambda(0.2);
-               c = 0;
+                setAlpha(0);
             }
-            last = next;
+            last = next;*/
         }
     }
 
@@ -83,6 +83,10 @@ public class BCO {
 
     private static void setLambda(double n) {
         lambda = n;
+    }
+
+    private static void setAlpha(double n) {
+        alpha = n;
     }
 
 }

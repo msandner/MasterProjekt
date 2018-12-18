@@ -195,10 +195,10 @@ public class Bee {
 
     //gibt true zurück, wenn der gefundene Pfad eine bessere Fitness aufweist als der favorisierte Pfad mit dem die Biene begonnen hat
     private boolean shouldBeeDance(Path foundPath) {
-        int foundProb = fitness.evaluate(foundPath, -1).getFitness();
-        int oldProb = fitness.evaluate(new Path(favouredPath), -1).getFitness();
+        int foundFitness = fitness.evaluate(foundPath, -1).getFitness();
+        int oldFitness = fitness.evaluate(new Path(favouredPath), -1).getFitness();
 
-        return (foundProb <= oldProb);
+        return (foundFitness < oldFitness);
     }
 
     //Path in ArrayList schreiben, wenn ein besserer gefunden worde
@@ -207,12 +207,13 @@ public class Bee {
         twoOpt();
         //benötigt, da favouredPath möglicherweise in twoOpt geändert wird und sonst der falsche foundPath eingefügt wird
         Path foundPath = new Path(newPath);
-
         if (shouldBeeDance(foundPath)) {
             //Setzt den favorisierten Pfad auf den neu gefundenen Pfad
             favouredPath = newPath.clone();
-            fitness.evaluate(foundPath, -1);
-            colony.addPathToResultPaths(foundPath, favouredPath);
+
+            if(!colony.getResultPaths().contains(foundPath)) {
+                colony.addPathToResultPaths(foundPath, favouredPath);
+            }
         }
     }
 
@@ -227,6 +228,7 @@ public class Bee {
                 int temp = newPath[i+2];
                 newPath[i+2] = newPath[i+1];
                 newPath[i+1] = temp;
+                //System.out.println("Verbesserung von " + xyuv + " auf " + xuyv);
             }
         }
     }
